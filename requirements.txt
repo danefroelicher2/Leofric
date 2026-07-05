@@ -19,8 +19,8 @@ numpy
 # face_recognition
 
 # --- Audio (Phase 1H-1I) ---
-# pyaudio
-# pvporcupine
+pyaudio
+pvporcupine
 # openai-whisper
 
 # --- Brain + storage (Phase 1G, 1J) ---
