@@ -55,16 +55,16 @@ CAMERA_FPS = int(os.getenv("CAMERA_FPS", "30"))
 # distance is far larger than this.
 MOTION_MIN_AREA = int(os.getenv("MOTION_MIN_AREA", "5000"))
 
-# --- Person detection (HOG + SVM) ---
-# We downscale to this width before running HOG — cost grows with pixel count and
-# a person is still clearly detectable at 640px. Confidence filters weak SVM hits
-# (HOG's default detector is prone to false positives without a threshold).
-PERSON_DETECT_WIDTH = int(os.getenv("PERSON_DETECT_WIDTH", "640"))
-# Calibrated from live scores: true-person HOG hits ranged ~0.4-0.93 in testing.
-# 0.5 keeps confident hits and drops the weakest. HOG fires intermittently, so the
-# pipeline treats "person present" as a short-lived state a single good hit sets,
-# rather than requiring a hit every frame.
+# --- Person detection (MobileNet-SSD DNN) ---
+# Detection confidence, 0..1. 0.5 is a solid default for SSD: raise it to cut
+# false positives, lower it to catch harder cases (partial or distant bodies).
 PERSON_MIN_CONFIDENCE = float(os.getenv("PERSON_MIN_CONFIDENCE", "0.5"))
+
+# Pretrained model files. Not committed to git (binary/large) — fetch them once
+# with: python scripts/fetch_models.py
+MODELS_DIR = DATA_DIR / "models"
+PERSON_PROTOTXT = MODELS_DIR / "MobileNetSSD_deploy.prototxt"
+PERSON_MODEL = MODELS_DIR / "MobileNetSSD_deploy.caffemodel"
 
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
