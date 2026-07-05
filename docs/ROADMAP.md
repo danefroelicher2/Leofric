@@ -124,14 +124,17 @@ fetched by `scripts/fetch_models.py` into `data/models/`.
 ### 1F — Identity Recognition
 **Goal:** Pi learns what you look like. Knows the difference between you and an unknown person.
 
-- [ ] **[CODE]** `vision/identity.py` — face detection and encoding using face_recognition
-      library (built on dlib), loads known encodings from disk
-- [ ] **[CODE]** Enrollment script — captures 20+ face images of you from the live camera,
-      generates and saves encodings to disk
-- [ ] **[YOU]** Run enrollment: sit in front of camera for ~60 seconds while it captures
-- [ ] **[CODE]** Identity classification runs on frames where a person is detected:
-      outputs "builder", "unknown", or "no face"
-- [ ] **[DECISION]** Evaluate recognition accuracy before proceeding. Tune if needed.
+- [x] **[CODE]** `vision/identity.py` — face detection + encoding using OpenCV YuNet
+      (detect) + SFace (128-d embeddings); loads known encodings from disk
+- [x] **[CODE]** Enrollment script — captures 25 face samples from the live camera,
+      saves embeddings to `data/known_faces.npz`
+- [x] **[YOU]** Run enrollment
+- [x] **[CODE]** Identity classification: outputs builder name or "unknown" per face
+- [x] **[DECISION]** Recognition accuracy evaluated — builder matched at 0.80 cosine
+      vs a 0.363 threshold (>2x margin). Solid; no tuning needed.
+
+**1F COMPLETE.** Chose OpenCV YuNet+SFace over dlib/face_recognition to avoid a
+slow, fragile Pi compile. This completes the entire vision pipeline (1C–1F).
 
 ---
 
