@@ -162,13 +162,17 @@ connector — no manual dashboard SQL.
 builder could not obtain a Picovoice account. Free, offline, no account. See
 docs/DECISIONS.md ADR-003.
 
-- [ ] **[CODE]** `audio/microphone.py` — opens ReSpeaker device via PyAudio,
-      continuous audio stream, thread-safe frame buffer
-- [ ] **[CODE]** `audio/wakeword.py` — openWakeWord listener on mic stream,
+- [x] **[CODE]** `audio/microphone.py` — opens ReSpeaker (16kHz mono) via PyAudio,
+      fixed-size frames
+- [x] **[CODE]** `audio/wakeword.py` — openWakeWord listener on mic stream,
       fires when the wake word is detected
-- [ ] **[YOU]** Bring-up test with a pretrained model — confirm wake word triggers in logs
-- [ ] **[CODE/YOU]** Train custom "Hey Leofric" model (free openWakeWord notebook),
-      drop into `data/models/`, retest
+- [x] **[YOU]** Bring-up test with a pretrained model — confirmed, 0.90–0.99 scores
+- [ ] **[CODE/YOU]** Train custom "Hey Leofric" model (free openWakeWord Colab),
+      drop `hey_leofric.onnx` into `data/models/`, retest (code auto-picks it up)
+
+**1H audio pipeline PROVEN** with the pretrained model. Only the custom "Hey
+Leofric" model remains — a one-file swap; the wake phrase is "Hey Jarvis" until
+then.
 
 ---
 
