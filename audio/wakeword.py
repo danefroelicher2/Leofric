@@ -50,11 +50,10 @@ class WakeWord:
         self.threshold = (
             threshold if threshold is not None else config.WAKEWORD_THRESHOLD
         )
-        # wakeword_model_paths takes file paths; inference_framework is forwarded to
-        # the feature extractor so it loads its ONNX (not tflite) preprocessor models.
-        self._model = Model(
-            wakeword_model_paths=[self.model_path], inference_framework="onnx"
-        )
+        # wakeword_model_paths takes file paths. openWakeWord 0.6.0 is ONNX-native
+        # (the preprocessor defaults to its .onnx feature models), so we pass no
+        # framework flag — it is inferred from the .onnx model files.
+        self._model = Model(wakeword_model_paths=[self.model_path])
 
     @property
     def label(self):
