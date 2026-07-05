@@ -29,5 +29,5 @@ onnxruntime
 faster-whisper
 
 # --- Brain + storage (Phase 1G, 1J) ---
-# requests
+requests
 supabase

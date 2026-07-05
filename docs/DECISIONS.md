@@ -3,6 +3,18 @@
 A running log of notable technical decisions and deviations from the original
 spec, with the reasoning — so the "why" behind each choice isn't lost later.
 
+## ADR-005: Mac Mini brain built from scratch (spec assumed it existed)
+**Date:** 2026-07-05
+
+The spec described the Mac Mini as already running a Flask API + Ollama on
+`192.168.1.46:5000`, "do not rebuild." In reality the Mac was powered off, and once
+on, a full LAN scan found no Flask (:5000) and no Ollama (:11434) — the brain was
+never set up (global notes also list the central brain as deferred). So we build it:
+a small Flask server (`macmini/server.py`) fronting Ollama/Llama 3.2, defining a
+clean contract (`POST /chat {message, history} -> {response}`). The Mac's DHCP IP
+had also drifted off `.46`; we will reserve a static IP. Owning both sides is a
+better outcome than inheriting a black-box server.
+
 ## ADR-004: Transcription — faster-whisper instead of openai-whisper
 **Date:** 2026-07-05
 

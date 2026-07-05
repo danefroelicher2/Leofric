@@ -1,0 +1,3 @@
+# Leofric brain server (Mac Mini) dependencies.
+flask
+requests
