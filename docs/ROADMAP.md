@@ -194,15 +194,16 @@ record → transcribe → text works end to end.
 ### 1J — Mac Mini Integration
 **Goal:** Pi sends conversation text to Mac Mini, Mac Mini runs LLM, response returns to Pi.
 
-- [ ] **[CODE]** `brain/client.py` — HTTP client that POSTs transcribed text to
-      Mac Mini Flask API at 192.168.1.46:5000, receives LLM response text
-- [ ] **[CODE]** `brain/conversation.py` — maintains conversation history,
-      prepends context to each request so Leofric has memory within a session
-- [ ] **[CODE]** Verify Mac Mini Flask API endpoint exists and accepts requests
-      (do not modify the Mac Mini setup — only verify it works)
-- [ ] **[YOU]** Say "hey Leofric" followed by a question — confirm response
-      text appears in terminal
-- [ ] **[CODE]** Log conversation to Supabase conversations table
+- [x] **[CODE]** `brain/client.py` — HTTP client POSTs transcribed text to the Mac
+      Mini Flask API, receives LLM response text
+- [x] **[CODE]** `brain/conversation.py` — maintains conversation history within a session
+- [x] **[CODE]** Mac Mini brain built (it never existed — ADR-005) and verified from
+      the Pi: typed conversation works, context carries across turns
+- [x] **[YOU]** Confirmed via typed test; voice→brain path wired in 1K
+- [ ] **[CODE]** Log conversation to Supabase conversations table (wired in main.py, 1K)
+
+**1J COMPLETE.** Pi ↔ Mac brain works over the drift-proof hostname
+`Danes-Mac-mini-3.local:5000` (llama3.2). See docs/MAC_STATUS.md.
 
 ---
 

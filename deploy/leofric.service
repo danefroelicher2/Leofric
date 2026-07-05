@@ -1,0 +1,17 @@
+[Unit]
+Description=Leofric edge node (vision + audio + brain)
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dane
+WorkingDirectory=/home/dane/leofric
+ExecStart=/home/dane/leofric/venv/bin/python /home/dane/leofric/main.py
+Restart=on-failure
+RestartSec=5
+# Give models time to load on start before systemd considers it failed.
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target
