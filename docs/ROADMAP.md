@@ -179,12 +179,15 @@ then.
 ### 1I — Transcription
 **Goal:** When wake word fires, capture what follows and convert to text.
 
-- [ ] **[CODE]** `audio/transcription.py` — on wake word, records until silence
-      (voice activity detection), sends audio to Whisper (local, runs on Pi),
-      returns transcribed text
-- [ ] **[YOU]** Say "hey Leofric, what time is it" — confirm text appears correctly in logs
-- [ ] **[DECISION]** Evaluate Whisper model size vs accuracy vs speed on Pi 5.
-      Start with `base` model. Move to `small` if accuracy is poor.
+- [x] **[CODE]** `audio/transcription.py` — on wake word, records until silence
+      (energy-based endpointing), transcribes locally with faster-whisper
+- [x] **[YOU]** Confirmed: full sentences transcribe correctly (e.g. "what is the
+      weather today"), ~2s latency on the Pi
+- [x] **[DECISION]** Keeping `base` — accuracy good, ~2s per utterance. `small` is
+      a one-line config bump if ever needed.
+
+**1I COMPLETE.** Local speech-to-text via faster-whisper (ADR-004). Wake word →
+record → transcribe → text works end to end.
 
 ---
 
