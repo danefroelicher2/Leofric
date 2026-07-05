@@ -6,7 +6,7 @@ Hey-Leofric model if data/models/hey_leofric.onnx exists, otherwise a pretrained
 model (config.WAKEWORD_PRETRAINED, default 'hey_jarvis') so we can validate the
 mic + engine before the custom model is trained.
 
-First run downloads the openWakeWord models (needs internet). Ctrl+C to stop.
+Models ship bundled with openWakeWord 0.6.0 — nothing to download. Ctrl+C to stop.
 
 Usage (venv active, from project root):
     python scripts/test_wakeword.py
@@ -18,8 +18,6 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from openwakeword import utils as oww_utils  # noqa: E402
 
 import config  # noqa: E402
 from log import setup_logging  # noqa: E402
@@ -33,9 +31,6 @@ COOLDOWN = 1.5  # seconds; collapse a single utterance into one log line
 
 def main():
     setup_logging()
-    logger.info("Ensuring openWakeWord models are present (first run downloads them)...")
-    oww_utils.download_models()
-
     ww = WakeWord()
     mic = Microphone(
         rate=WakeWord.SAMPLE_RATE, channels=1, frame_length=WakeWord.FRAME_LENGTH
