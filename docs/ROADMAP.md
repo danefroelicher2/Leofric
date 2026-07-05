@@ -141,14 +141,17 @@ slow, fragile Pi compile. This completes the entire vision pipeline (1C–1F).
 ### 1G — Supabase Setup
 **Goal:** Persistent event log and conversation history in the cloud.
 
-- [ ] **[YOU]** Create free Supabase account at supabase.com
-- [ ] **[YOU]** Create new project named "leofric"
-- [ ] **[YOU]** Paste project URL and anon key into config — Claude will tell you exactly
-      where to put them
-- [ ] **[CODE]** `storage/events.py` — Supabase client, schema for events table
-      (timestamp, node_id, event_type, metadata), schema for conversations table
-- [ ] **[CODE]** Create the tables via migration script
-- [ ] **[CODE]** Test: write a dummy event, confirm it appears in Supabase dashboard
+- [x] **[YOU]** Create free Supabase account at supabase.com
+- [x] **[YOU]** Create new project named "leofric"
+- [x] **[YOU]** Paste project URL and service_role key into `.env` on the Pi
+- [x] **[CODE]** `storage/events.py` — Supabase client, events + conversations tables
+- [x] **[CODE]** Create the tables via migration (done through the Supabase connector)
+- [x] **[CODE]** Test: wrote a dummy event, verified in the cloud, then cleaned up
+
+**1G COMPLETE.** Project ref `ylefaaoyjcikcdoqnqvy`, us-east-2. Pi writes with the
+service_role key (in `.env`); RLS on all tables. Security advisors reviewed and the
+auto-RLS function's public EXECUTE revoked. DB managed directly via the Supabase
+connector — no manual dashboard SQL.
 
 ---
 
