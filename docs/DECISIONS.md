@@ -3,6 +3,17 @@
 A running log of notable technical decisions and deviations from the original
 spec, with the reasoning — so the "why" behind each choice isn't lost later.
 
+## ADR-004: Transcription — faster-whisper instead of openai-whisper
+**Date:** 2026-07-05
+
+The roadmap says "Whisper (local, runs on the Pi)". The reference implementation,
+openai-whisper, depends on the full PyTorch stack — hundreds of MB and slow on the
+Pi's CPU. **faster-whisper** runs the same Whisper models on the CTranslate2
+backend: ~4x faster on CPU, much lower memory, with int8 quantization. It installs
+cleanly on the Pi (pure-Python wrapper + a `ctranslate2` cp313 aarch64 wheel).
+Same models and accuracy, far better fit for the hardware. Starting at the `base`
+model size per the roadmap; will bump to `small` if accuracy is poor.
+
 ## ADR-003: Wake word — openWakeWord instead of Porcupine / Picovoice
 **Date:** 2026-07-05
 

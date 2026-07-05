@@ -24,7 +24,9 @@ numpy
 pyaudio
 openwakeword
 onnxruntime
-# openai-whisper
+# Transcription: faster-whisper (CTranslate2) — efficient Whisper on CPU, chosen
+# over openai-whisper to avoid the heavy torch stack. See DECISIONS.md ADR-004.
+faster-whisper
 
 # --- Brain + storage (Phase 1G, 1J) ---
 # requests

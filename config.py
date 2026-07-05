@@ -92,6 +92,15 @@ WAKEWORD_PRETRAINED = os.getenv("WAKEWORD_PRETRAINED", "hey_jarvis")
 # Score 0..1 above which the wake word is considered heard.
 WAKEWORD_THRESHOLD = float(os.getenv("WAKEWORD_THRESHOLD", "0.5"))
 
+# --- Transcription (faster-whisper, runs locally on the Pi) ---
+# Model size: 'tiny' (fastest) -> 'base' -> 'small' (most accurate, slower).
+# Start at 'base' per the roadmap; bump to 'small' if accuracy is poor.
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
+# Energy-based endpointing: record the utterance until the speaker goes quiet.
+VAD_SILENCE_RMS = float(os.getenv("VAD_SILENCE_RMS", "500"))  # int16 RMS below = silence
+UTTERANCE_SILENCE_SECONDS = float(os.getenv("UTTERANCE_SILENCE_SECONDS", "1.0"))
+UTTERANCE_MAX_SECONDS = float(os.getenv("UTTERANCE_MAX_SECONDS", "8"))
+
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
 
