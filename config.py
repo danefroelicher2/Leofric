@@ -82,14 +82,15 @@ FACE_MATCH_THRESHOLD = float(os.getenv("FACE_MATCH_THRESHOLD", "0.363"))
 KNOWN_FACES_FILE = DATA_DIR / "known_faces.npz"
 BUILDER_NAME = os.getenv("BUILDER_NAME", "dane")
 
-# --- Audio (ReSpeaker mic + Porcupine wake word) ---
+# --- Audio (ReSpeaker mic + openWakeWord wake word) ---
 # The ReSpeaker is found by name so USB re-enumeration doesn't break us.
 AUDIO_DEVICE_NAME = os.getenv("AUDIO_DEVICE_NAME", "ReSpeaker")
-# Custom Porcupine model, added after training "Hey Leofric" in the console.
-WAKEWORD_PPN = MODELS_DIR / "hey-leofric.ppn"
-# Built-in keyword used for bring-up before the custom model exists.
-WAKEWORD_BUILTIN = os.getenv("WAKEWORD_BUILTIN", "computer")
-WAKEWORD_SENSITIVITY = float(os.getenv("WAKEWORD_SENSITIVITY", "0.5"))
+# Custom "Hey Leofric" model, added after training; if absent we fall back to a
+# pretrained model for bring-up. (Engine is openWakeWord — see DECISIONS.md ADR-003.)
+WAKEWORD_MODEL = MODELS_DIR / "hey_leofric.onnx"
+WAKEWORD_PRETRAINED = os.getenv("WAKEWORD_PRETRAINED", "hey_jarvis")
+# Score 0..1 above which the wake word is considered heard.
+WAKEWORD_THRESHOLD = float(os.getenv("WAKEWORD_THRESHOLD", "0.5"))
 
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
@@ -98,11 +99,7 @@ MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
 # --- Secrets ---
 # Exposed as functions, not module constants, so that simply importing config
 # never crashes before the keys exist. A subsystem calls these only when it
-# actually needs to connect (Phases 1G and 1H wire them in).
-def picovoice_access_key() -> str:
-    return _require("PICOVOICE_ACCESS_KEY")
-
-
+# actually needs to connect. (openWakeWord needs no key — see DECISIONS.md ADR-003.)
 def supabase_url() -> str:
     return _require("SUPABASE_URL")
 

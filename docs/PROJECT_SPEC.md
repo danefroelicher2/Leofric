@@ -44,8 +44,11 @@ Leofric does not speak out loud. It watches, listens, thinks, and communicates t
 
 ### Audio
 - Always listening at low power for wake word
-- Wake word detection uses Porcupine from Picovoice — not openWakeWord
-- Wake word is "hey Leofric" — custom keyword trained via Porcupine web interface
+- Wake word detection uses **openWakeWord** (free, offline, no account). Original
+  spec chose Porcupine/Picovoice, but the builder could not obtain a Picovoice
+  account — see docs/DECISIONS.md ADR-003. Fully on-device, privacy preserved.
+- Wake word is "hey Leofric" — custom model trained via openWakeWord's notebook
+  (bring-up uses a pretrained model until the custom one is trained)
 - Wake word activates full attention and conversation mode
 - Builder speaks — audio transcribed locally on Pi — text sent to Mac Mini
 - LLM processes on Mac Mini — response returns as text
@@ -116,7 +119,8 @@ Compact hardware replacing the development rig. Clean mount. Single cable. Looks
 - Mac Mini IP: 192.168.1.46, Flask on port 5000
 - Raspberry Pi: fresh SD card, not yet flashed or configured — Pi setup is the first task before any deployment
 - Supabase: needs a fresh project created — not yet configured for Leofric
-- Wake word: Porcupine from Picovoice — custom keyword, do not use openWakeWord
+- Wake word: **openWakeWord** — free, offline, no account (replaced Porcupine/
+  Picovoice, which the builder could not get an account for; see docs/DECISIONS.md)
 - Prior project Mercia used a similar architecture — Leofric codebase is written entirely from scratch, do not reference or copy Mercia code
 
 ---

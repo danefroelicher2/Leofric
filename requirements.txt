@@ -19,8 +19,11 @@ numpy
 # face_recognition
 
 # --- Audio (Phase 1H-1I) ---
+# Wake word: openWakeWord (offline, no account) + onnxruntime backend.
+# Replaced Porcupine/Picovoice — see docs/DECISIONS.md ADR-003.
 pyaudio
-pvporcupine
+openwakeword
+onnxruntime
 # openai-whisper
 
 # --- Brain + storage (Phase 1G, 1J) ---

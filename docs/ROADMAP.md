@@ -158,14 +158,17 @@ connector — no manual dashboard SQL.
 ### 1H — Audio Pipeline
 **Goal:** ReSpeaker always listening at low power, ready to activate on wake word.
 
-- [ ] **[YOU]** Create free Picovoice account at picovoice.ai
-- [ ] **[YOU]** Generate access key (free tier supports one device)
-- [ ] **[YOU]** Paste access key into config
+**NOTE:** Wake word switched from Porcupine/Picovoice to **openWakeWord** — the
+builder could not obtain a Picovoice account. Free, offline, no account. See
+docs/DECISIONS.md ADR-003.
+
 - [ ] **[CODE]** `audio/microphone.py` — opens ReSpeaker device via PyAudio,
       continuous audio stream, thread-safe frame buffer
-- [ ] **[CODE]** `audio/wakeword.py` — Porcupine listener on mic stream,
-      fires callback when "hey Leofric" is detected
-- [ ] **[YOU]** Say "hey Leofric" — confirm wake word triggers in logs
+- [ ] **[CODE]** `audio/wakeword.py` — openWakeWord listener on mic stream,
+      fires when the wake word is detected
+- [ ] **[YOU]** Bring-up test with a pretrained model — confirm wake word triggers in logs
+- [ ] **[CODE/YOU]** Train custom "Hey Leofric" model (free openWakeWord notebook),
+      drop into `data/models/`, retest
 
 ---
 
@@ -315,6 +318,9 @@ One power cable. Looks like it belongs on a wall.
 
 | Service | When Needed | Cost | Purpose |
 |---|---|---|---|
-| Picovoice | Phase 1H | Free (1 device) | Wake word — "hey Leofric" |
+| ~~Picovoice~~ | ~~Phase 1H~~ | — | Dropped — replaced by openWakeWord (no account). See DECISIONS.md ADR-003 |
 | Supabase | Phase 1G | Free tier | Event log, conversation history |
 | Apple Developer | Phase 2D | $99/year | Push notifications |
+
+Wake word (openWakeWord) needs no account. Training a custom "Hey Leofric" model
+uses a free Google Colab notebook (Google account, which the builder already has).
