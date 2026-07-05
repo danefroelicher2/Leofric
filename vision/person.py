@@ -20,6 +20,7 @@ import config
 class PersonResult:
     detected: bool
     boxes: list = field(default_factory=list)  # (x, y, w, h) in ORIGINAL frame coords
+    weights: list = field(default_factory=list)  # SVM confidence score per box
 
 
 class PersonDetector:
@@ -44,11 +45,13 @@ class PersonDetector:
         )
 
         inv = 1.0 / scale
-        boxes = []
+        boxes, kept_weights = [], []
         for (x, y, w, h), weight in zip(rects, weights):
             # weight is the SVM decision score; drop weak (likely false) hits.
-            if float(weight) < self.min_confidence:
+            wf = float(weight)
+            if wf < self.min_confidence:
                 continue
             boxes.append((int(x * inv), int(y * inv), int(w * inv), int(h * inv)))
+            kept_weights.append(round(wf, 2))
 
-        return PersonResult(detected=bool(boxes), boxes=boxes)
+        return PersonResult(detected=bool(boxes), boxes=boxes, weights=kept_weights)
