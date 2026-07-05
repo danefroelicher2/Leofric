@@ -83,10 +83,13 @@ leofric/
 ### 1C — Camera Pipeline
 **Goal:** Stable continuous camera feed with frame access for downstream processing.
 
-- [ ] **[CODE]** `vision/camera.py` — opens camera device, reads frames in a loop,
+- [x] **[CODE]** `vision/camera.py` — opens camera device, reads frames in a loop,
       exposes latest frame to other modules via thread-safe access
-- [ ] **[CODE]** Test script — display camera stats, save sample frame to disk
-- [ ] **[YOU]** Confirm frame captures correctly over SSH (view saved image)
+- [x] **[CODE]** Test script — display camera stats, save sample frame to disk
+- [x] **[YOU]** Confirm frame captures correctly over SSH (view saved image)
+
+**1C COMPLETE.** Threaded capture at 1280x720. Driver negotiates ~15fps under
+auto-exposure, which is ample for the detectors. Sample frame verified clean.
 
 ---
 

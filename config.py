@@ -49,6 +49,12 @@ CAMERA_WIDTH = int(os.getenv("CAMERA_WIDTH", "1280"))
 CAMERA_HEIGHT = int(os.getenv("CAMERA_HEIGHT", "720"))
 CAMERA_FPS = int(os.getenv("CAMERA_FPS", "30"))
 
+# --- Motion detection ---
+# Minimum contour area (in pixels) to count as motion. Below this we treat a
+# region as noise/lighting flicker and ignore it. Tunable; a person at room
+# distance is far larger than this.
+MOTION_MIN_AREA = int(os.getenv("MOTION_MIN_AREA", "5000"))
+
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
 
