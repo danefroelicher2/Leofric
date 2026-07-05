@@ -1,0 +1,4 @@
+# This repo is developed on Windows but deployed to Linux (the Pi).
+# Force LF line endings for all text files so shell scripts and Python behave
+# correctly on the Pi regardless of the checkout platform.
+* text=auto eol=lf

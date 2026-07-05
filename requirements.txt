@@ -1,0 +1,24 @@
+# Leofric — Python dependencies.
+#
+# Installed incrementally per phase to avoid long builds before they are needed
+# (face_recognition/dlib in particular takes a long time to compile on the Pi).
+# Uncomment each group at the start of its phase.
+
+# --- Foundation (Phase 1B, install now) ---
+python-dotenv==1.0.1
+
+# --- Vision (Phase 1C-1E) ---
+# opencv-python
+# numpy
+
+# --- Identity (Phase 1F) ---
+# face_recognition
+
+# --- Audio (Phase 1H-1I) ---
+# pyaudio
+# pvporcupine
+# openai-whisper
+
+# --- Brain + storage (Phase 1G, 1J) ---
+# requests
+# supabase

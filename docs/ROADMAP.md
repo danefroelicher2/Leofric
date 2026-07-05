@@ -32,11 +32,14 @@ runs as a stable, always-on process.
 ### 1A — Hardware Verification
 **Goal:** Confirm webcam and ReSpeaker are detected and functional on the Pi.
 
-- [ ] **[YOU]** Plug Logitech webcam into Pi USB port
-- [ ] **[YOU]** Plug ReSpeaker XVF3000 into Pi USB port
-- [ ] **[CODE]** Run hardware check script — confirms camera device exists, confirms mic
+- [x] **[YOU]** Plug Logitech webcam into Pi USB port
+- [x] **[YOU]** Plug ReSpeaker XVF3000 into Pi USB port
+- [x] **[CODE]** Run hardware check script — confirms camera device exists, confirms mic
       device exists, captures a test frame, records a 3-second audio clip
-- [ ] **[YOU]** Verify test frame looks correct, test audio clip plays back
+- [x] **[YOU]** Verify test frame looks correct, test audio clip plays back
+
+**1A COMPLETE.** Camera = Logitech BRIO Ultra HD at `/dev/video0`. Mic = ReSpeaker
+4 Mic Array at ALSA `card 2`. Both capture confirmed (720p frame + 3s clip verified).
 
 ---
 

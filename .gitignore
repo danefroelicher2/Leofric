@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Virtual environment (created on the Pi, never committed)
+venv/
+.venv/
+
+# Secrets — real values live only in .env on the Pi
+.env
+
+# Runtime artifacts (keep the folders, ignore their contents)
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Hardware check outputs
+hwcheck_frame.jpg
+hwcheck_audio.wav
+
+# OS
+.DS_Store
+Thumbs.db
