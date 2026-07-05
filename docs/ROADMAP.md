@@ -46,10 +46,14 @@ runs as a stable, always-on process.
 ### 1B — Project Structure
 **Goal:** Clean Python project layout on the Pi before any feature code is written.
 
-- [ ] **[CODE]** Propose folder structure for approval
-- [ ] **[YOU]** Confirm or adjust the structure
-- [ ] **[CODE]** Create folders, `requirements.txt`, `README`, Python virtual environment setup
-- [ ] **[CODE]** Push initial project skeleton to GitHub
+- [x] **[CODE]** Propose folder structure for approval
+- [x] **[YOU]** Confirm or adjust the structure
+- [x] **[CODE]** Create folders, `requirements.txt`, `README`, Python virtual environment setup
+- [x] **[CODE]** Push initial project skeleton to GitHub
+
+**1B COMPLETE.** Repo cloned to `/home/dane/leofric` on the Pi via a read-only
+GitHub deploy key. venv at `~/leofric/venv`. Workflow: develop on Windows → push →
+`git pull` on the Pi → run/test on hardware.
 
 Proposed structure (subject to your approval):
 ```

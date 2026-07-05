@@ -8,8 +8,10 @@
 python-dotenv==1.0.1
 
 # --- Vision (Phase 1C-1E) ---
-# opencv-python
-# numpy
+# Headless build: no GUI/X11 dependencies, correct for a headless Pi where we
+# save frames to disk rather than call cv2.imshow(). Smaller and fewer system libs.
+opencv-python-headless
+numpy
 
 # --- Identity (Phase 1F) ---
 # face_recognition

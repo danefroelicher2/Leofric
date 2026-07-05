@@ -42,6 +42,13 @@ NODE_ID = os.getenv("NODE_ID", "leofric")
 CAMERA_DEVICE = os.getenv("CAMERA_DEVICE", "/dev/video0")
 MIC_CARD = int(os.getenv("MIC_CARD", "2"))
 
+# --- Camera capture settings ---
+# 720p at 30fps is a good balance of detail and CPU on the Pi 5. Downstream
+# detectors will downscale further; the raw feed stays at this resolution.
+CAMERA_WIDTH = int(os.getenv("CAMERA_WIDTH", "1280"))
+CAMERA_HEIGHT = int(os.getenv("CAMERA_HEIGHT", "720"))
+CAMERA_FPS = int(os.getenv("CAMERA_FPS", "30"))
+
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
 
