@@ -25,4 +25,4 @@ numpy
 
 # --- Brain + storage (Phase 1G, 1J) ---
 # requests
-# supabase
+supabase
