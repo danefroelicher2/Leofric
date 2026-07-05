@@ -109,10 +109,15 @@ the mover. Events logged to `logs/leofric.log` with rising/falling-edge debounce
 ### 1E — Person Detection
 **Goal:** Distinguish a person from other motion (shadow, light change, animal, object).
 
-- [ ] **[CODE]** `vision/person.py` — HOG person detector via OpenCV,
-      runs on frames where motion is detected (not every frame — saves CPU)
-- [ ] **[CODE]** Person detection events logged separately from raw motion events
-- [ ] **[YOU]** Walk in front of camera, confirm person vs no-person is correctly classified
+- [x] **[CODE]** `vision/person.py` — person detector, runs on frames where motion
+      is detected (not every frame — saves CPU)
+- [x] **[CODE]** Person detection events logged separately from raw motion events
+- [x] **[YOU]** Walk in front of camera, confirm person vs no-person is correctly classified
+
+**1E COMPLETE.** Swapped HOG for a MobileNet-SSD DNN (via OpenCV's dnn module,
+no new deps) because the deployment target sees seated/partial/multiple bodies
+that HOG can't handle. Detected the builder seated at 0.97 confidence. Model
+fetched by `scripts/fetch_models.py` into `data/models/`.
 
 ---
 

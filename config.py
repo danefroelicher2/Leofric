@@ -70,6 +70,18 @@ MODELS_DIR = DATA_DIR / "models"
 PERSON_PROTOTXT = MODELS_DIR / "MobileNetSSD_deploy.prototxt"
 PERSON_MODEL = MODELS_DIR / "MobileNetSSD_deploy.caffemodel"
 
+# --- Identity (YuNet face detection + SFace face recognition) ---
+FACE_DETECT_MODEL = MODELS_DIR / "face_detection_yunet_2023mar.onnx"
+FACE_RECOG_MODEL = MODELS_DIR / "face_recognition_sface_2021dec.onnx"
+# YuNet face-detection confidence (0..1) required to accept a face.
+FACE_DETECT_SCORE = float(os.getenv("FACE_DETECT_SCORE", "0.8"))
+# SFace cosine-similarity threshold: >= this means "same person". 0.363 is the
+# model's published operating point. Raise it to be stricter (fewer false matches).
+FACE_MATCH_THRESHOLD = float(os.getenv("FACE_MATCH_THRESHOLD", "0.363"))
+# Where enrolled face embeddings are stored, and the builder's label.
+KNOWN_FACES_FILE = DATA_DIR / "known_faces.npz"
+BUILDER_NAME = os.getenv("BUILDER_NAME", "dane")
+
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
 
