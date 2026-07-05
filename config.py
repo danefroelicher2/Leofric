@@ -60,7 +60,11 @@ MOTION_MIN_AREA = int(os.getenv("MOTION_MIN_AREA", "5000"))
 # a person is still clearly detectable at 640px. Confidence filters weak SVM hits
 # (HOG's default detector is prone to false positives without a threshold).
 PERSON_DETECT_WIDTH = int(os.getenv("PERSON_DETECT_WIDTH", "640"))
-PERSON_MIN_CONFIDENCE = float(os.getenv("PERSON_MIN_CONFIDENCE", "0.6"))
+# Calibrated from live scores: true-person HOG hits ranged ~0.4-0.93 in testing.
+# 0.5 keeps confident hits and drops the weakest. HOG fires intermittently, so the
+# pipeline treats "person present" as a short-lived state a single good hit sets,
+# rather than requiring a hit every frame.
+PERSON_MIN_CONFIDENCE = float(os.getenv("PERSON_MIN_CONFIDENCE", "0.5"))
 
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
