@@ -96,10 +96,13 @@ auto-exposure, which is ample for the detectors. Sample frame verified clean.
 ### 1D — Motion Detection
 **Goal:** Detect when something moves in frame. Log every motion event with timestamp.
 
-- [ ] **[CODE]** `vision/motion.py` — background subtraction (OpenCV MOG2),
+- [x] **[CODE]** `vision/motion.py` — background subtraction (OpenCV MOG2),
       motion threshold tuning, outputs True/False per frame with bounding box
-- [ ] **[CODE]** Motion events written to local log file with timestamp
-- [ ] **[YOU]** Walk in front of camera, confirm motion is detected in logs
+- [x] **[CODE]** Motion events written to local log file with timestamp
+- [x] **[YOU]** Walk in front of camera, confirm motion is detected in logs
+
+**1D COMPLETE.** MOG2 detector fires on movement, quiet when still, boxes track
+the mover. Events logged to `logs/leofric.log` with rising/falling-edge debounce.
 
 ---
 
