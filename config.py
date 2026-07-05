@@ -35,6 +35,10 @@ def _require(name: str) -> str:
     return value
 
 
+# --- Filesystem paths (defined early so later settings can build on them) ---
+DATA_DIR = PROJECT_ROOT / "data"
+LOGS_DIR = PROJECT_ROOT / "logs"
+
 # --- Node identity ---
 NODE_ID = os.getenv("NODE_ID", "leofric")
 
@@ -68,10 +72,6 @@ PERSON_MODEL = MODELS_DIR / "MobileNetSSD_deploy.caffemodel"
 
 # --- Mac Mini brain ---
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
-
-# --- Filesystem paths ---
-DATA_DIR = PROJECT_ROOT / "data"
-LOGS_DIR = PROJECT_ROOT / "logs"
 
 
 # --- Secrets ---
