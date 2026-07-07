@@ -35,26 +35,39 @@ or Mac directly — I hand the user commands. The user runs two terminal tabs:
 To view Pi files (images/audio), `scp` them to Windows and open. Activate the venv
 in a fresh SSH session: `cd ~/leofric && source venv/bin/activate`.
 
-## Status — Phase 1 (Core Loop)
-**1A–1J COMPLETE. 1K BUILT but NOT yet run/verified on hardware.**
+## Status — Phase 1 (Core Loop) — ✅ COMPLETE (2026-07-06)
+**1A–1K ALL COMPLETE and verified on hardware. Next phase is 2 (iOS app).**
 - 1A hardware, 1B skeleton+venv+deploy key, 1C camera (threaded, 720p),
   1D motion (MOG2), 1E person (**MobileNet-SSD DNN**), 1F identity (**YuNet+SFace**,
   builder "dane" enrolled at 0.80), 1G Supabase (events+conversations, RLS),
   1H wake word (**openWakeWord**, currently pretrained **"hey jarvis"**),
   1I transcription (**faster-whisper base**), 1J brain (**Ollama llama3.2** on the
   Mac — we built it; the spec wrongly assumed it existed).
-- **1K**: `main.py` integrates everything (VisionWorker + AudioWorker threads,
-  graceful shutdown) and `deploy/leofric.service` (systemd) are written and pushed
-  but **not yet executed**. 
+- **1K**: `main.py` (VisionWorker + AudioWorker threads, graceful shutdown) +
+  `deploy/leofric.service` (systemd) installed and **verified on hardware**. Service
+  is `enabled` + `active (running)`; **reboot test PASSED** (Pi power-cycled, Leofric
+  auto-started in ~30s with nobody logged in). Full voice loop works **headless**
+  (wake word → transcribe → Mac brain → coherent reply → Supabase). Vision (motion +
+  person + identity `dane`) logging cleanly the whole time.
+- **Transcription hardening (2026-07-06):** enabled faster-whisper `vad_filter=True`
+  (Silero VAD) — kills the "invent words from marginal/far-field audio" hallucination
+  (e.g. it used to emit "The problem is it." from noise). Weak audio now returns
+  empty instead of a false transcript. Zero added latency. Root cause of the earlier
+  garble was diagnosed as background audio (a video playing) + Whisper `base`
+  hallucinating on non-speech — NOT CPU contention (disproved: clean transcription
+  under full vision load). `scripts/measure_audio.py` added as a live mic-RMS meter
+  for VAD tuning (room ambient ~115 RMS, speech 1500–5000+, threshold 500 confirmed).
 
-### NEXT TASK (start here tomorrow)
-1. On the Pi: `cd ~/leofric && git pull && python main.py`. Exercise vision (move
-   in front of camera) and voice (say "Hey Jarvis" + a question). Ctrl+C to stop.
-   Watch for crashes / CPU contention (heaviest load yet: vision + Whisper + wake).
-2. Then verify events + conversation landed in Supabase (query via the Supabase
-   MCP connector, project ref `ylefaaoyjcikcdoqnqvy`).
-3. Install systemd unit (`deploy/leofric.service` → `/etc/systemd/system/`,
-   `systemctl enable --now leofric`), reboot test, 30-min stability run → Phase 1 review.
+### NEXT TASK — Phase 2A (iOS app begins)
+Phase 1 is done. Start Phase 2 (see docs/ROADMAP.md Phase 2). First up: expand the
+Mac Mini Flask API (`GET /events`, `GET /feed` MJPEG, `GET /conversations`,
+`GET /nodes`, existing `POST /chat`) so the iOS app has data to consume, then
+scaffold the Xcode project on the Mac.
+
+**Small durability follow-up before/while doing Phase 2:** Mac Mini reboot test —
+the brain LaunchAgent was only kill-tested, never reboot-tested. Reboot the Mac,
+then from the Pi `curl http://Danes-Mac-mini-3.local:5000/` to confirm the brain
+auto-starts. This closes the last "a week later" gap on the Mac side.
 
 ### Deferred / TODO
 - **Custom "Hey Leofric" wake word**: train via openWakeWord's free Colab, drop

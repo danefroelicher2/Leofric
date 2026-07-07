@@ -210,15 +210,25 @@ record → transcribe → text works end to end.
 ### 1K — Core Loop Integration
 **Goal:** All subsystems running together as a single always-on process.
 
-- [ ] **[CODE]** `main.py` — starts all subsystems in threads, coordinates between them:
+- [x] **[CODE]** `main.py` — starts all subsystems in threads, coordinates between them:
       camera thread → motion/person/identity pipeline,
       audio thread → wake word → transcription → Mac Mini → log
-- [ ] **[CODE]** Graceful shutdown handling (Ctrl+C, systemd stop)
-- [ ] **[CODE]** `systemd` service file so Leofric auto-starts on Pi boot
-- [ ] **[YOU]** Reboot Pi, confirm Leofric starts automatically
-- [ ] **[YOU]** Run for 30+ minutes, confirm no crashes, check logs
-- [ ] **[DECISION]** Phase 1 review. Is the core loop stable? Does identity work well
-      enough? Is conversation responsive? Only move to Phase 2 when all three are solid.
+- [x] **[CODE]** Graceful shutdown handling (Ctrl+C, systemd stop)
+- [x] **[CODE]** `systemd` service file so Leofric auto-starts on Pi boot
+- [x] **[YOU]** Reboot Pi, confirm Leofric starts automatically — **PASSED**
+- [x] **[YOU]** Run for 30+ minutes, confirm no crashes, check logs
+- [x] **[DECISION]** Phase 1 review — PASSED. Core loop stable, identity solid
+      (`dane` 0.56–0.75), conversation responsive (~3s, coherent). Cleared to Phase 2.
+
+**1K COMPLETE (2026-07-06).** `main.py` runs as a systemd service (`enabled` +
+`active (running)`). Reboot test passed: power-cycled the Pi, Leofric auto-started
+in ~30s with nobody logged in — sensing, recognizing the builder, logging to
+Supabase. Full voice loop verified **headless**: "Hey Jarvis" → transcribe → Mac
+brain → coherent reply, all from the background service. Also hardened
+transcription with faster-whisper `vad_filter=True` to stop hallucination on
+marginal audio (see CLAUDE.md). **PHASE 1 IS DONE — next is Phase 2 (iOS app).**
+
+`← YOU ARE HERE` → Phase 2A (Mac Mini API expansion).
 
 ---
 
