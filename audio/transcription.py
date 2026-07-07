@@ -66,6 +66,14 @@ class Transcriber:
         self._model = WhisperModel(self.model_size, device="cpu", compute_type="int8")
 
     def transcribe(self, audio):
-        """Return the transcribed text for a float32 16 kHz audio array."""
-        segments, _info = self._model.transcribe(audio, language="en", beam_size=1)
+        """Return the transcribed text for a float32 16 kHz audio array.
+
+        vad_filter runs Silero VAD to drop non-speech regions before decoding.
+        Without it, faster-whisper tends to *invent* words from marginal or
+        near-silent audio (far-field, off-mic, wake-word echo). With it, weak
+        audio comes back empty ("no speech") instead of a hallucinated phrase.
+        """
+        segments, _info = self._model.transcribe(
+            audio, language="en", beam_size=1, vad_filter=True
+        )
         return " ".join(seg.text.strip() for seg in segments).strip()
