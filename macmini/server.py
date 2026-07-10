@@ -25,11 +25,12 @@ Binds 0.0.0.0:5000 so the Pi and iPhones on the LAN can reach it.
 """
 
 import os
+import re
 import threading
 import time
 
 import requests
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, send_file
 
 
 def _load_dotenv():
@@ -62,6 +63,17 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 NODE_ONLINE_WINDOW_SECONDS = 15
 FEED_FPS = 4  # re-broadcast rate of /feed (matches the Pi's default push rate)
 MAX_FRAME_BYTES = 5 * 1024 * 1024  # reject absurd uploads; 720p JPEG is ~100 KB
+
+# Snapshots: one JPEG per person/identity event, saved on disk so the app's
+# Alerts timeline has photos. Pruned oldest-first beyond SNAPSHOT_KEEP.
+SNAPSHOT_DIR = os.getenv(
+    "LEOFRIC_SNAPSHOT_DIR",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "snapshots"),
+)
+SNAPSHOT_KEEP = int(os.getenv("LEOFRIC_SNAPSHOT_KEEP", "2000"))
+SNAPSHOT_EVENT_TYPES = {"person", "identity"}  # motion is logged, never photographed
+_NODE_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_SNAPSHOT_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,80}")
 
 SYSTEM_PROMPT = (
     "You are Leofric, a local home intelligence system running on the builder's "
@@ -160,6 +172,53 @@ def feed():
         _mjpeg_stream(node),
         mimetype="multipart/x-mixed-replace; boundary=leofricframe",
     )
+
+
+def _prune_snapshots():
+    files = sorted(
+        (
+            os.path.join(SNAPSHOT_DIR, name)
+            for name in os.listdir(SNAPSHOT_DIR)
+            if name.endswith(".jpg")
+        ),
+        key=os.path.getmtime,
+    )
+    for path in files[: max(0, len(files) - SNAPSHOT_KEEP)]:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+@app.post("/ingest/event/<node>")
+def ingest_event(node):
+    """Pi pushes a detection event; a fresh frame becomes its snapshot photo."""
+    if not _NODE_RE.fullmatch(node):
+        return jsonify(error="invalid node name"), 400
+    data = request.get_json(force=True, silent=True) or {}
+    event_type = (data.get("event_type") or "").strip()
+    if not event_type:
+        return jsonify(error="missing 'event_type'"), 400
+    snapshot_id = None
+    if event_type in SNAPSHOT_EVENT_TYPES:
+        jpeg, at = _latest_frame(node)
+        if jpeg is not None and time.time() - at <= NODE_ONLINE_WINDOW_SECONDS:
+            snapshot_id = f"{node}-{int(time.time() * 1000)}"
+            os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+            with open(os.path.join(SNAPSHOT_DIR, snapshot_id + ".jpg"), "wb") as f:
+                f.write(jpeg)
+            _prune_snapshots()
+    return jsonify(ok=True, snapshot_id=snapshot_id)
+
+
+@app.get("/snapshot/<snapshot_id>")
+def snapshot(snapshot_id):
+    if not _SNAPSHOT_ID_RE.fullmatch(snapshot_id):
+        return jsonify(error="not found"), 404
+    path = os.path.join(SNAPSHOT_DIR, snapshot_id + ".jpg")
+    if not os.path.exists(path):
+        return jsonify(error="not found"), 404
+    return send_file(path, mimetype="image/jpeg")
 
 
 @app.get("/nodes")

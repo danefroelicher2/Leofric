@@ -6,6 +6,9 @@ Run on the Mac with the deployment venv (no pytest needed):
 Supabase and Ollama are mocked; nothing here touches the network.
 """
 
+import os
+import shutil
+import tempfile
 import time
 import unittest
 from unittest import mock
@@ -26,6 +29,13 @@ class ApiTest(unittest.TestCase):
     def setUp(self):
         server._frames.clear()
         self.client = server.app.test_client()
+        self._snapdir = tempfile.mkdtemp(prefix="leofric-snaps-")
+        self._old_snapdir = server.SNAPSHOT_DIR
+        server.SNAPSHOT_DIR = self._snapdir
+
+    def tearDown(self):
+        server.SNAPSHOT_DIR = self._old_snapdir
+        shutil.rmtree(self._snapdir, ignore_errors=True)
 
     # --- existing Phase 1 contract (must never break) ---
 
@@ -125,6 +135,79 @@ class ApiTest(unittest.TestCase):
              mock.patch.object(server.requests, "get", side_effect=OSError("down")):
             resp = self.client.get("/events")
         self.assertEqual(resp.status_code, 502)
+
+    # --- event ingest + snapshots ---
+
+    def _post_frame(self, node="leofric"):
+        return self.client.post(
+            f"/ingest/frame/{node}", data=TINY_JPEG, content_type="image/jpeg"
+        )
+
+    def test_person_event_with_frame_saves_snapshot(self):
+        self._post_frame()
+        resp = self.client.post(
+            "/ingest/event/leofric",
+            json={"event_type": "person", "metadata": {"count": 1}},
+        )
+        self.assertEqual(resp.status_code, 200)
+        body = resp.get_json()
+        self.assertTrue(body["ok"])
+        self.assertIsNotNone(body["snapshot_id"])
+        path = os.path.join(server.SNAPSHOT_DIR, body["snapshot_id"] + ".jpg")
+        self.assertTrue(os.path.exists(path))
+        got = self.client.get(f"/snapshot/{body['snapshot_id']}")
+        self.assertEqual(got.status_code, 200)
+        self.assertEqual(got.data, TINY_JPEG)
+
+    def test_event_without_frame_has_no_snapshot(self):
+        resp = self.client.post(
+            "/ingest/event/leofric", json={"event_type": "person", "metadata": {}}
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsNone(resp.get_json()["snapshot_id"])
+
+    def test_motion_event_never_snapshots(self):
+        self._post_frame()
+        resp = self.client.post(
+            "/ingest/event/leofric", json={"event_type": "motion", "metadata": {}}
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsNone(resp.get_json()["snapshot_id"])
+        self.assertEqual(os.listdir(server.SNAPSHOT_DIR), [])
+
+    def test_event_requires_type_and_valid_node(self):
+        self.assertEqual(
+            self.client.post("/ingest/event/leofric", json={}).status_code, 400
+        )
+        self.assertEqual(
+            self.client.post(
+                "/ingest/event/bad..name", json={"event_type": "person"}
+            ).status_code,
+            400,
+        )
+
+    def test_snapshot_rejects_bad_ids_and_missing(self):
+        self.assertEqual(self.client.get("/snapshot/no-such-id").status_code, 404)
+        self.assertEqual(self.client.get("/snapshot/..%2Fetc").status_code, 404)
+
+    def test_snapshot_pruning_keeps_newest(self):
+        old_keep = server.SNAPSHOT_KEEP
+        server.SNAPSHOT_KEEP = 2
+        try:
+            self._post_frame()
+            ids = []
+            for _ in range(4):
+                body = self.client.post(
+                    "/ingest/event/leofric", json={"event_type": "person"}
+                ).get_json()
+                ids.append(body["snapshot_id"])
+                time.sleep(0.02)  # distinct mtimes/ids
+            remaining = sorted(os.listdir(server.SNAPSHOT_DIR))
+            self.assertEqual(len(remaining), 2)
+            self.assertIn(ids[-1] + ".jpg", remaining)
+            self.assertNotIn(ids[0] + ".jpg", remaining)
+        finally:
+            server.SNAPSHOT_KEEP = old_keep
 
 
 if __name__ == "__main__":
