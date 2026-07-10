@@ -34,12 +34,17 @@ bulletproof: the reboot test and Ollama keep-alive (details below). Next build p
 - **FileVault: OFF** and **auto-login: ON** (`danefroelicher`) — the recommended
   appliance configuration is **already in place**. Per-user LaunchAgents will fire
   after an unattended reboot.
-- ⚠️ **Reboot test still NOT run.** This is the one remaining proof. Reason it was
-  deferred: this Mac also runs live non-Leofric jobs (notably `com.dane.fbscalper`);
-  all have RunAtLoad+KeepAlive and will auto-restart after a reboot, but Dane wants
-  to schedule the reboot deliberately so he can check those jobs afterward.
-  **[DANE]** run `sudo reboot`, wait ~90s without touching the Mac, then from the Pi:
-  `curl -s http://Danes-Mac-mini-3.local:5000/` — expect the health JSON.
+- ✅ **REBOOT TEST PASSED (2026-07-10).** `sudo reboot`, nobody touched the Mac.
+  Within ~2 minutes, verified from the Pi by hostname:
+  - `curl http://Danes-Mac-mini-3.local:5000/` →
+    `{"model":"llama3.2","service":"leofric-brain","status":"ok"}`
+  - `POST /chat {"message":"who are you?"}` → `{"response":"I am Leofric, your home
+    intelligence assistant. ..."}`
+  - `ollama ps` after first chat → `llama3.2 ... 100% GPU ... UNTIL Forever`
+    (per-request keep-alive survives reboot, as designed).
+  - All other live jobs (fbscalper, clawdbot) auto-restarted; `pmset` settings
+    (`sleep 0 disksleep 0 womp 1`) persisted.
+  **The brain self-heals from a cold boot. Hardening is complete.**
 
 ## Ollama keep-alive (runbook Step 5) — DONE 2026-07-10 ✅
 
@@ -93,11 +98,9 @@ Recorded here because the Mac is the ops vantage point (Mac has SSH key to the P
 
 ## Remaining checklist before "bulletproof"
 
-1. **[DANE]** Reboot test (Section 10 of MACDOCS) — the final proof. Coordinate with
-   fbscalper.
+1. ~~Reboot test~~ **PASSED 2026-07-10** — headless cold-boot recovery proven.
 2. ~~Ollama keep-alive~~ **DONE** — per-request `keep_alive:-1`, verified `UNTIL Forever`.
-3. **[DANE]** `sudo pmset -c disksleep 0` (minor).
-4. Optional hardware: smart plug / UPS for the Pi.
+3. ~~disksleep 0~~ **DONE** — `pmset` now `sleep 0 disksleep 0 womp 1`, survives reboot.
+4. Optional hardware: smart plug / UPS for the Pi (**[DANE]**, whenever).
 
-After #1 passes, the brain is done hardening and Phase 2A (API expansion for the iOS
-app) can begin on this Mac.
+**Hardening is COMPLETE. The Mac is ready for Phase 2A (API expansion for the iOS app).**
