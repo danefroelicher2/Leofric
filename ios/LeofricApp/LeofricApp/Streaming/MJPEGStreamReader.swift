@@ -84,7 +84,12 @@ final class MJPEGStreamReader: NSObject, ObservableObject, URLSessionDataDelegat
             return nil  // trailing CRLF hasn't fully arrived yet
         }
         let jpegData = Data(buffer[jpegStart..<jpegEnd])
-        let consumeEnd = buffer.index(jpegEnd, offsetBy: 2)
+        var consumeEnd = jpegEnd
+        let trailing = Data("\r\n".utf8)
+        if buffer.distance(from: jpegEnd, to: buffer.endIndex) >= 2,
+           buffer[jpegEnd..<buffer.index(jpegEnd, offsetBy: 2)] == trailing {
+            consumeEnd = buffer.index(jpegEnd, offsetBy: 2)
+        }
         buffer.removeSubrange(buffer.startIndex..<consumeEnd)
         return jpegData
     }
