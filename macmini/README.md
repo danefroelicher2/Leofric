@@ -9,6 +9,19 @@ reply. Nothing leaves the LAN.
 - `GET /` → `{"status":"ok","service":"leofric-brain","model":"llama3.2"}`
 - `POST /chat` → body `{"message": "...", "history": [{"role","content"}, ...]}`
   returns `{"response": "..."}`
+- `GET /events?limit=&event_type=&node_id=` → `{"events":[...]}` newest first
+  (proxied from Supabase; limit clamps to 200)
+- `GET /conversations?limit=&session_id=&node_id=` → `{"conversations":[...]}`
+- `GET /nodes` → `{"nodes":[{"name","online","last_seen","streaming"}]}`
+- `GET /feed?node=leofric` → MJPEG stream (`multipart/x-mixed-replace`) of the
+  node's live camera; 503 if no fresh frames
+- `POST /ingest/frame/<node>` — raw JPEG body; the Pi pushes ~4 fps. Frames live
+  in memory only (live TV, not a recording).
+
+`/events` and `/conversations` need `SUPABASE_URL` + `SUPABASE_KEY` in the
+environment or in a `.env` beside `server.py` (deployment only, never committed).
+
+Tests: `python3 -m unittest macmini.test_server -v` (network fully mocked).
 
 ## Setup (on the Mac Mini)
 

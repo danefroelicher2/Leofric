@@ -241,13 +241,19 @@ node status. Leofric moves from a terminal project to a product.
 ### 2A — Mac Mini API Expansion
 **Goal:** Mac Mini Flask API serves data the app needs.
 
-- [ ] **[CODE]** New endpoints on Mac Mini:
+- [x] **[CODE]** New endpoints on Mac Mini:
       - `GET /events` — recent events with timestamps and type
       - `GET /feed` — MJPEG live camera stream from Pi
       - `GET /conversations` — recent conversation history
       - `GET /nodes` — node status (online/offline, last seen)
       - `POST /chat` — send message, get response (existing endpoint)
-- [ ] **[CODE]** Pi streams camera frames to Mac Mini via HTTP
+- [x] **[CODE]** Pi streams camera frames to Mac Mini via HTTP
+
+**2A COMPLETE (2026-07-10).** Events/conversations proxied from Supabase; Pi
+pushes ~4 JPEG fps (`vision/streamer.py`) to `POST /ingest/frame/<node>`, kept
+in memory only and re-broadcast as MJPEG at `/feed`. Verified on hardware: live
+room frame captured through the Mac's `/feed`, `/nodes` shows `leofric`
+online+streaming. 11 unit tests in `macmini/test_server.py`.
 
 ---
 
