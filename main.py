@@ -131,7 +131,9 @@ class AudioWorker(threading.Thread):
             rate=WakeWord.SAMPLE_RATE, channels=1, frame_length=WakeWord.FRAME_LENGTH
         )
         self.brain = BrainClient()
-        self.convo = Conversation()
+        self.convo = Conversation(
+            node_id=config.NODE_ID, idle_seconds=config.SESSION_IDLE_SECONDS
+        )
 
     def run(self):
         self.mic.start()
@@ -147,15 +149,16 @@ class AudioWorker(threading.Thread):
                     logger.info("(no speech transcribed)")
                     continue
                 logger.info("heard: %s", text)
+                session_id = self.convo.begin_exchange()
                 self.convo.add("user", text)
-                self.store.log_conversation("user", text)
+                self.store.log_conversation("user", text, session_id=session_id)
                 try:
                     reply = self.brain.chat(text, history=self.convo.history())
                 except BrainError as e:
                     logger.warning("brain unreachable: %s", e)
                     continue
                 self.convo.add("assistant", reply)
-                self.store.log_conversation("leofric", reply)
+                self.store.log_conversation("leofric", reply, session_id=session_id)
                 logger.info("leofric: %s", reply)
         except Exception:
             logger.exception("Audio worker crashed")
