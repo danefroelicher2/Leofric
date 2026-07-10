@@ -48,7 +48,10 @@ def chat():
     try:
         resp = requests.post(
             OLLAMA_URL,
-            json={"model": MODEL, "messages": messages, "stream": False},
+            # keep_alive=-1 keeps the model resident in RAM between requests,
+            # regardless of which Ollama launch mechanism owns the port.
+            json={"model": MODEL, "messages": messages, "stream": False,
+                  "keep_alive": -1},
             timeout=120,
         )
         resp.raise_for_status()

@@ -41,21 +41,18 @@ bulletproof: the reboot test and Ollama keep-alive (details below). Next build p
   **[DANE]** run `sudo reboot`, wait ~90s without touching the Mac, then from the Pi:
   `curl -s http://Danes-Mac-mini-3.local:5000/` — expect the health JSON.
 
-## Ollama keep-alive (runbook Step 5) — NOT DONE, known issue
+## Ollama keep-alive (runbook Step 5) — DONE 2026-07-10 ✅
 
-`ollama ps` shows the model **unloads after idle**, so the first reply after a quiet
-period takes several extra seconds while llama3.2 reloads.
+Implemented **per-request** instead of only via env var (deliberate deviation from the
+runbook): `server.py` now sends `"keep_alive": -1` in every Ollama request, so the
+model stays resident **no matter which Ollama launch mechanism owns port 11434**.
+Verified: `ollama ps` → `llama3.2:latest ... 100% GPU ... UNTIL Forever` (~2.5 GB RAM,
+intended). The env var was also added to `com.ollama.server.plist` as backup.
 
-Complication found: **two competing Ollama startup mechanisms** exist —
-1. the Ollama **menu-bar app** (Electron, login item) — this is what actually serves
-   port 11434 today;
-2. the `com.ollama.server` LaunchAgent (`ollama serve`) — currently **failing on every
-   retry (exit 1)** because the app already owns the port. Harmless but messy.
-
-Fix plan (do together with the reboot test): pick ONE mechanism — recommend the
-LaunchAgent with `OLLAMA_KEEP_ALIVE=-1` in its `EnvironmentVariables` and the menu-bar
-app removed from login items — then reboot and confirm `ollama ps` keeps the model
-resident (~2–3 GB RAM, intended).
+Background: **two Ollama startup mechanisms** coexist — the menu-bar app (currently
+serving 11434) and the `com.ollama.server` LaunchAgent (fail-looping on the taken
+port). Left intentionally: with per-request keep-alive both behave identically, and
+the retrying agent acts as a hot-standby that grabs the port if the app ever dies.
 
 ## Sleep / power
 
@@ -98,9 +95,9 @@ Recorded here because the Mac is the ops vantage point (Mac has SSH key to the P
 
 1. **[DANE]** Reboot test (Section 10 of MACDOCS) — the final proof. Coordinate with
    fbscalper.
-2. Ollama keep-alive + de-dupe the double startup (do with #1).
+2. ~~Ollama keep-alive~~ **DONE** — per-request `keep_alive:-1`, verified `UNTIL Forever`.
 3. **[DANE]** `sudo pmset -c disksleep 0` (minor).
 4. Optional hardware: smart plug / UPS for the Pi.
 
-After #1–2 pass, the brain is done hardening and Phase 2A (API expansion for the iOS
+After #1 passes, the brain is done hardening and Phase 2A (API expansion for the iOS
 app) can begin on this Mac.
