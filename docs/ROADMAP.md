@@ -228,7 +228,7 @@ brain → coherent reply, all from the background service. Also hardened
 transcription with faster-whisper `vad_filter=True` to stop hallucination on
 marginal audio (see CLAUDE.md). **PHASE 1 IS DONE — next is Phase 2 (iOS app).**
 
-`← YOU ARE HERE` → Phase 2A (Mac Mini API expansion).
+`← YOU ARE HERE` → Phase 2B (security backend), then 2C (iOS app core).
 
 ---
 
@@ -257,35 +257,69 @@ online+streaming. 11 unit tests in `macmini/test_server.py`.
 
 ---
 
-### 2B — iOS App Structure
-**Goal:** Clean Swift project with navigation and data layer.
+> **Phase 2 design decided 2026-07-10 (brainstormed on the Mac).** The app is a
+> **security camera system with a brain** — not a chatbot with a camera. Priority:
+> (1) live feed + instant identity-aware person notifications with snapshot photos,
+> (2) chats (voice sessions surface in the app as threads; typed chats from
+> anywhere), (3) per-node roles ("security" vs "assistant"). Remote access is
+> **Tailscale-only** (encrypted mesh VPN; nothing exposed to the public internet)
+> — the phone talks solely to the Mac API, from home or Arizona alike. No vision
+> LLM: "seeing" = the existing detection pipeline; llama3.2 stays the brain.
+> SwiftUI, iOS 17+, async/await, zero third-party dependencies. Full design in
+> PROJECT_SPEC ("The App").
 
-- [ ] **[CODE]** Propose Swift project structure for approval
-- [ ] **[YOU]** Confirm structure
-- [ ] **[CODE]** Xcode project scaffolding — tab navigation, network layer,
-      models matching API responses
-- [ ] **[YOU]** Open project in Xcode on Mac Mini, build to your iPhone
+### 2B — Security Backend (Mac + Pi)
+**Goal:** The Mac can react to a person at the door in under a second.
+
+- [ ] **[CODE]** Pi POSTs person/identity events directly to the Mac
+      (`POST /ingest/event/<node>`) alongside the existing Supabase logging
+- [ ] **[CODE]** Mac saves a snapshot JPEG per person-event to disk
+      (`GET /snapshot/<event_id>`), with pruning so the disk never fills
+- [ ] **[CODE]** Pi stamps `session_id` on conversation rows (one wake-word
+      session = one chat thread)
+- [ ] **[CODE]** Node roles in config (`security` / `assistant`) surfaced in `/nodes`
 
 ---
 
-### 2C — Core Screens
-**Goal:** Four screens working end to end.
+### 2C — iOS App Core
+**Goal:** A security camera in hand: app opens → live video in under 2 seconds.
 
-- [ ] **[CODE]** Live feed screen — MJPEG stream from Mac Mini
-- [ ] **[CODE]** Alert feed screen — list of motion/person/unknown events with timestamps
-- [ ] **[CODE]** Conversation screen — chat interface, sends to Mac Mini, displays response
-- [ ] **[CODE]** Node status screen — shows leofric node online/offline, last seen
-- [ ] **[YOU]** Test each screen on device
+- [ ] **[CODE]** Propose Swift project structure for approval; scaffold Xcode project
+      (SwiftUI, tab navigation, `LeofricAPI` network layer, Codable models
+      matching the Mac's exact JSON)
+- [ ] **[CODE]** Live tab — custom MJPEG stream reader (~100 lines; AVPlayer
+      can't play MJPEG), full-screen feed, node switcher
+- [ ] **[CODE]** Nodes tab — health board + settings (Mac base URL, preferences)
+- [ ] **[YOU]** Build to your iPhone from Xcode on the Mac Mini, verify feed on device
 
 ---
 
-### 2D — Push Notifications
-**Goal:** Motion while away triggers notification to iPhone.
+### 2D — Alerts + Chats
+**Goal:** The security timeline and the conversation surface.
 
-- [ ] **[YOU]** Apple Developer account required ($99/year) — confirm you have one
-- [ ] **[CODE]** APNs integration on Mac Mini — sends push when Pi logs a person event
-- [ ] **[CODE]** Notification includes event type and timestamp
-- [ ] **[YOU]** Leave home range, trigger motion, confirm notification arrives
+- [ ] **[CODE]** Alerts tab — event timeline with per-event snapshot thumbnails,
+      filter by node/type; tap → full photo + "watch live"
+- [ ] **[CODE]** Chats tab — thread list (voice sessions auto-appear; compose for
+      typed chats), iMessage-style thread view, ~2s polling while open
+- [ ] **[YOU]** Test each screen on device; say "hey Jarvis…" and watch the
+      thread appear in the app
+
+---
+
+### 2E — Push Notifications + Remote Access
+**Goal:** Door opens in your house; phone buzzes in Arizona with a photo.
+
+- [x] **[YOU]** Apple Developer account — confirmed (builder has shipped apps)
+- [ ] **[CODE]** APNs on the Mac (token auth via .p8 key): device registration
+      endpoint (`POST /devices`), notification engine — identity-aware
+      ("Dane at front door" vs "UNKNOWN PERSON"), per-node rules, ~60s cooldown,
+      unknown persons always alert
+- [ ] **[CODE]** Rich notifications: snapshot photo attached (fetched over
+      Tailscale; degrades to text-only if unreachable)
+- [ ] **[YOU]** Install Tailscale on the Mac + iPhone (same account), set the app's
+      base URL to the Tailscale hostname
+- [ ] **[YOU]** The Arizona test: leave home, trigger a person event, confirm
+      notification + live feed work remotely
 - [ ] **[DECISION]** Phase 2 review. Is the app usable daily? Move to Phase 3 only when yes.
 
 ---

@@ -2,9 +2,22 @@
 
 ## What Leofric Is
 
-A home intelligence system. Physical nodes mounted in rooms watch and listen continuously. A central brain on a Mac Mini coordinates everything. An iPhone app gives the builder a live window into what Leofric sees, knows, and has flagged — from anywhere.
+A home intelligence system — at its core, **a security camera system with a brain**,
+not a chatbot with a camera. Physical nodes mounted in rooms watch and listen
+continuously. A central brain on a Mac Mini coordinates everything. An iPhone app
+gives the builder a live window into what Leofric sees, knows, and has flagged —
+from anywhere in the world, over an encrypted private tunnel (Tailscale), with
+nothing ever exposed to the public internet.
+
+Each node has a **role**: a *security* node (e.g. pointed at the door) is
+camera-first with instant person notifications; an *assistant* node (e.g. living
+room) is mic-first for conversation. Same software, per-node configuration.
 
 Leofric does not speak out loud. It watches, listens, thinks, and communicates through the app. This is intentional. Real intelligence systems do not announce themselves.
+
+The winning moment the system is built around: a door opens, someone steps in,
+and within a second or two the builder's phone — wherever it is — shows
+*"UNKNOWN PERSON at front door"* with a snapshot photo, one tap from the live feed.
 
 ---
 
@@ -15,8 +28,9 @@ Leofric does not speak out loud. It watches, listens, thinks, and communicates t
 - ReSpeaker XVF3000 — 4-mic array, USB, far-field audio input, AEC and noise suppression built in
 - Logitech webcam — vision input
 - UE Boom — optional single alert tone only, not voice output
-- Mac Mini Apple Silicon (Danes-Mac-mini-3.local, currently 192.168.1.19) — always on, central brain, all heavy inference
-- Fresh SD card — Raspberry Pi OS 64-bit, not yet flashed or configured
+- Mac Mini Apple Silicon M1, 8 GB RAM (Danes-Mac-mini-3.local, currently
+  192.168.1.19) — always on, central brain, all heavy inference. The 8 GB is the
+  known long-term scaling ceiling (bigger models, more nodes); fine through Phase 3.
 
 ### Development Environment
 - Primary development machine: Windows PC
@@ -61,23 +75,52 @@ Leofric does not speak out loud. It watches, listens, thinks, and communicates t
 - Conversation history viewable in app
 
 ### Alerting
-- Motion detected while builder is away — push notification to iPhone
-- Unknown person in frame — push notification with image or short clip
-- All events logged with timestamp and node identifier
+- Person detected at a security node — push notification with snapshot photo,
+  identity-aware ("Dane at front door" vs "UNKNOWN PERSON at front door"),
+  ~60s cooldown per node; unknown persons always alert
+- Raw motion is logged and visible in the app's Alerts timeline but does not
+  notify by itself (shadows and light changes are not visitors)
+- All events logged with timestamp and node identifier; snapshots kept on the
+  Mac with pruning
 
 ---
 
-## The App — iOS First
+## The App — iOS First (design settled 2026-07-10)
 
-- Built for iPhone, Apple ecosystem only for now
-- Android is a future consideration if this becomes a product
-- Builder has shipped two prior iOS apps — App Store Connect process is familiar
-- Core screens:
-  - Live camera feed, selectable by node
-  - Alert feed with timestamps and thumbnails
-  - Conversation interface — type or speak to Leofric, response appears as text
-  - Node status — which nodes are active, last seen timestamp
-- Push notifications for motion and unknown person events
+- Built for iPhone, Apple ecosystem only for now; Android is a future consideration
+  if this becomes a product. Builder has a developer account and has shipped iOS
+  apps before.
+- **Stack:** SwiftUI, iOS 17+, async/await, MVVM. One `LeofricAPI` client owns all
+  endpoint calls; `Codable` models mirror the Mac API's exact JSON. **Zero
+  third-party dependencies** — no supply-chain surface, matching the security posture.
+- **Connectivity:** the app talks *only* to the Mac's API. At home that's the LAN;
+  away it's the same request over Tailscale (mesh VPN, phone + Mac in one private
+  network). The base URL lives in Settings, so home/away is configuration, not code.
+- **Four tabs:**
+  1. **Live** — opens straight to the security node, full-screen MJPEG
+     (custom ~100-line stream reader; AVPlayer cannot play MJPEG). Target:
+     app open → video in under 2 seconds. Swipe between nodes.
+  2. **Alerts** — the security timeline: person/unknown/motion events, newest
+     first, each with the snapshot photo taken at that moment; filter by node;
+     tap → full photo + "watch live."
+  3. **Chats** — thread list. Voice sessions appear automatically (each
+     wake-word session = a thread; the builder's transcribed words as his
+     messages, wake word stripped; Leofric's replies as responses). Compose
+     button starts typed chats. ~2s polling while a thread is open (SSE is the
+     later upgrade path; no websockets for MVP).
+  4. **Nodes** — health board (online/offline, streaming, role, last seen,
+     brain status) + app settings.
+- **Push notifications** (APNs, token auth): identity-aware — "Dane at front
+  door" quiet-ish, "UNKNOWN PERSON at front door" loud and always delivered;
+  per-node rules; ~60s cooldown so one visit isn't thirty buzzes. Snapshot photo
+  rides along (fetched from the Mac over Tailscale when the notification lands;
+  degrades gracefully to text-only). Notifications travel via Apple's servers and
+  work anywhere regardless of VPN state.
+- **Explicitly not in scope:** a vision LLM. "What do you see" conversational
+  vision was considered and deprioritized (8 GB M1 constraint + not the product's
+  core). Leofric "sees" through the detection pipeline (motion → person →
+  identity); the brain stays llama3.2, text-only. Live weather-type questions are
+  a small future brain tool (the LLM has no internet), noted, not scheduled.
 
 ---
 
@@ -98,8 +141,13 @@ Leofric does not speak out loud. It watches, listens, thinks, and communicates t
 ### Phase One — Core Loop (current focus)
 One node. Motion detection working. Person detection working. Identity recognition learning the builder. Basic conversation via wake word with text response in terminal. All events logging to Mac Mini. This is the foundation everything else sits on. Do not advance until this phase is solid.
 
-### Phase Two — App
-iOS app consuming live feed, alert notifications, conversation interface, node status. Leofric moves from a terminal project to a product. Requires Xcode on Mac Mini.
+### Phase Two — App (current focus)
+iOS app consuming live feed, alert notifications, conversation interface, node
+status. Leofric moves from a terminal project to a product. Sub-phases (see
+ROADMAP): 2A Mac API (done) → 2B security backend (events to the Mac, snapshots,
+sessions, roles) → 2C app core (live feed first) → 2D alerts + chats →
+2E push notifications + Tailscale ("the Arizona test"). Xcode 26.2 is installed
+on the Mac Mini.
 
 ### Phase Three — Vision Intelligence Depth
 Identity expanded to additional known people. Unknown person alert with clip. Anomaly detection begins. The system starts making intelligent distinctions rather than flagging everything.
@@ -112,15 +160,24 @@ Compact hardware replacing the development rig. Clean mount. Single cable. Looks
 
 ---
 
-## Current State — Read This First
+## Current State — Read This First (updated 2026-07-10)
 
-- Mac Mini Flask server: already configured, auto-starts on boot, do not rebuild
-- Mac Mini Ollama: already configured, Llama 3.2 downloaded, auto-starts on boot, do not rebuild
-- Mac Mini: Danes-Mac-mini-3.local (currently 192.168.1.19), Flask on port 5000
-- Raspberry Pi: fresh SD card, not yet flashed or configured — Pi setup is the first task before any deployment
-- Supabase: needs a fresh project created — not yet configured for Leofric
-- Wake word: **openWakeWord** — free, offline, no account (replaced Porcupine/
-  Picovoice, which the builder could not get an account for; see docs/DECISIONS.md)
+- **Phase 1 COMPLETE and hardened.** The Pi runs the full loop 24/7 under systemd
+  (vision: motion → person → identity; audio: wake word → transcribe → brain →
+  reply; everything logged to Supabase) and survives reboots. Reliability work
+  done: persistent journald, hardware watchdog, EEPROM updated, active cooler
+  installed, PMIC latch-off incident root-caused (see docs/MAC_STATUS.md).
+- **Phase 2A COMPLETE.** The Mac API serves `/chat`, `/events`, `/conversations`,
+  `/nodes`, `/feed` (MJPEG), `/ingest/frame/<node>`; the Pi streams ~4 fps to it.
+  Verified end-to-end on hardware. See macmini/README.md for the contract.
+- Mac Mini brain: reboot-proof (reboot test passed), model pinned resident
+  (`keep_alive:-1`), reachable at `Danes-Mac-mini-3.local:5000` — hostname, not
+  IP, is canonical. Do not rebuild; only extend.
+- Supabase: live (`events` + `conversations`, RLS on); managed via the Supabase
+  connector, service key on the Pi only.
+- Wake word: **openWakeWord**, pretrained "hey Jarvis" until the custom
+  "hey Leofric" model is trained (free Colab; one-file swap — see DECISIONS ADR-003).
+- Next: Phase 2B (security backend), then the iOS app (2C–2E) per docs/ROADMAP.md.
 - Prior project Mercia used a similar architecture — Leofric codebase is written entirely from scratch, do not reference or copy Mercia code
 
 ---
@@ -136,10 +193,13 @@ Compact hardware replacing the development rig. Clean mount. Single cable. Looks
 
 ## Notes for Claude Code
 
-- All code is written from scratch in Python — clean, well-structured, defensible in a technical interview
+- All code is written from scratch — Python on the Pi and Mac, Swift/SwiftUI in
+  the app — clean, well-structured, defensible in a technical interview
 - Every architectural decision should be explainable in plain English — no magic, no black boxes
 - When in doubt, build the simpler thing first and make it work completely before adding complexity
 - The builder is transitioning into Python mastery — write code that teaches as well as functions, with clear naming and comments that explain why not just what
 - The bar for every decision is whether an engineer at Anduril or Leidos would find it serious and well-reasoned
-- Phase one is the only current focus — do not architect for phases two through five until phase one is complete
+- Phase two is the current focus — build it in the ROADMAP's sub-phase order so
+  every stage leaves something usable; do not architect for phases three through
+  five beyond what the design already accounts for
 - Propose folder structure before writing any code and wait for confirmation
