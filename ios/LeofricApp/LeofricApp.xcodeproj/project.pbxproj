@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		013D6EC0EF16E16C2FE3C225 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5F0BF5D98F005AD3FA81CD /* AppSettings.swift */; };
 		1F2F03F115870B450642178A /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */; };
 		2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */; };
 		2EB6A82443A24BA8FD578E90 /* NodeStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */; };
@@ -14,6 +15,7 @@
 		8E20D9195783BB5A9C0E4129 /* LeofricAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */; };
 		B4598A1BA7A32E90B79B275D /* MJPEGStreamReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD9CE2D88DB46CF20D73C /* MJPEGStreamReader.swift */; };
 		DF0306E6B01713E916BEA840 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C307207B882CBB2955008D5 /* Assets.xcassets */; };
+		F43F84420BF678B400FC9435 /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BD455BF0B806F87F664F /* AppSettingsTests.swift */; };
 		F875A5D7D945D9A90D763C02 /* MJPEGStreamReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11788988102C5F223F31EB6 /* MJPEGStreamReaderTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -30,8 +32,10 @@
 /* Begin PBXFileReference section */
 		11FBD9CE2D88DB46CF20D73C /* MJPEGStreamReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MJPEGStreamReader.swift; sourceTree = "<group>"; };
 		3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricAPI.swift; sourceTree = "<group>"; };
+		3D5F0BF5D98F005AD3FA81CD /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricApp.swift; sourceTree = "<group>"; };
 		40CA773A1679A40EE927DFAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4803BD455BF0B806F87F664F /* AppSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsTests.swift; sourceTree = "<group>"; };
 		5A9C49C80FE667C532AEAE36 /* LeofricAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LeofricAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E17449B830705D3A9ED1C84 /* LeofricApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LeofricApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C307207B882CBB2955008D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -53,6 +57,7 @@
 		3F5C698B1B9DD641A4EF6076 /* LeofricAppTests */ = {
 			isa = PBXGroup;
 			children = (
+				4803BD455BF0B806F87F664F /* AppSettingsTests.swift */,
 				EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */,
 				A11788988102C5F223F31EB6 /* MJPEGStreamReaderTests.swift */,
 				FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */,
@@ -85,9 +90,18 @@
 				40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */,
 				840E97178946DE6A743D7AE4 /* Models */,
 				D50D2081B9C961533BCAECCA /* Networking */,
+				C6408F15B6FAEEBD37CD8180 /* Settings */,
 				0AA0F1698B8C0916019025A9 /* Streaming */,
 			);
 			path = LeofricApp;
+			sourceTree = "<group>";
+		};
+		C6408F15B6FAEEBD37CD8180 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				3D5F0BF5D98F005AD3FA81CD /* AppSettings.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		CC387BC7B1B6F55828F1C284 /* Products */ = {
@@ -199,6 +213,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F43F84420BF678B400FC9435 /* AppSettingsTests.swift in Sources */,
 				8E20D9195783BB5A9C0E4129 /* LeofricAPITests.swift in Sources */,
 				F875A5D7D945D9A90D763C02 /* MJPEGStreamReaderTests.swift in Sources */,
 				1F2F03F115870B450642178A /* SmokeTests.swift in Sources */,
@@ -209,6 +224,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				013D6EC0EF16E16C2FE3C225 /* AppSettings.swift in Sources */,
 				2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */,
 				8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */,
 				B4598A1BA7A32E90B79B275D /* MJPEGStreamReader.swift in Sources */,
