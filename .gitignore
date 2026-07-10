@@ -26,3 +26,10 @@ hwcheck_audio.wav
 # OS
 .DS_Store
 Thumbs.db
+
+# iOS build artifacts (the .xcodeproj itself IS committed — XcodeGen-generated
+# but treated as source of truth for opening in Xcode; only derived/user state
+# is ignored)
+ios/LeofricApp/.build/
+ios/LeofricApp/*.xcodeproj/xcuserdata/
+ios/LeofricApp/*.xcodeproj/project.xcworkspace/xcuserdata/
