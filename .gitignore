@@ -16,6 +16,8 @@ data/*
 !data/.gitkeep
 logs/*
 !logs/.gitkeep
+# Event snapshots are written on the Mac only, never committed (privacy).
+macmini/snapshots/
 
 # Hardware check outputs
 hwcheck_frame.jpg
