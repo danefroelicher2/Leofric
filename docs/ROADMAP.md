@@ -271,13 +271,25 @@ online+streaming. 11 unit tests in `macmini/test_server.py`.
 ### 2B — Security Backend (Mac + Pi)
 **Goal:** The Mac can react to a person at the door in under a second.
 
-- [ ] **[CODE]** Pi POSTs person/identity events directly to the Mac
+- [x] **[CODE]** Pi POSTs person/identity events directly to the Mac
       (`POST /ingest/event/<node>`) alongside the existing Supabase logging
-- [ ] **[CODE]** Mac saves a snapshot JPEG per person-event to disk
-      (`GET /snapshot/<event_id>`), with pruning so the disk never fills
-- [ ] **[CODE]** Pi stamps `session_id` on conversation rows (one wake-word
+- [x] **[CODE]** Mac saves a snapshot JPEG per person-event to disk
+      (`GET /snapshot/<id>`), with pruning so the disk never fills
+- [x] **[CODE]** Pi stamps `session_id` on conversation rows (one wake-word
       session = one chat thread)
-- [ ] **[CODE]** Node roles in config (`security` / `assistant`) surfaced in `/nodes`
+- [x] **[CODE]** Node roles in config (`security` / `assistant`) surfaced in `/nodes`
+
+**2B COMPLETE (2026-07-10).** Verified on hardware end to end: Pi detects a
+person → `brain/maclink.py` posts the event to the Mac → the Mac captures a
+snapshot from the live frame stream and returns a `snapshot_id` → the Pi stores
+that id in the event's Supabase `metadata` → `GET /snapshot/<id>` serves the
+89 KB photo. `/nodes` reports `role: security` from the Pi's `X-Node-Role`
+header; snapshots pruned oldest-first beyond `SNAPSHOT_KEEP` (2000). Wake-word
+sessions rotate `session_id` after `SESSION_IDLE_SECONDS` idle (verified by unit
+test; live voice check deferred to a spoken test before 2D). 8 tasks, all
+TDD-reviewed; 25 unit tests across `macmini/test_server.py`, `tests/test_maclink.py`,
+`tests/test_conversation.py`. Event push is best-effort — a dead Mac never stalls
+the vision loop. Plan: `docs/superpowers/plans/2026-07-10-phase-2b-security-backend.md`.
 
 ---
 
