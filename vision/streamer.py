@@ -58,7 +58,10 @@ class FrameStreamer(threading.Thread):
                 resp = session.post(
                     self.url,
                     data=jpeg.tobytes(),
-                    headers={"Content-Type": "image/jpeg"},
+                    headers={
+                        "Content-Type": "image/jpeg",
+                        "X-Node-Role": config.NODE_ROLE,
+                    },
                     timeout=5,
                 )
                 resp.raise_for_status()

@@ -111,6 +111,15 @@ STREAM_ENABLED = os.getenv("STREAM_ENABLED", "1").lower() not in ("0", "false", 
 STREAM_FPS = float(os.getenv("STREAM_FPS", "4"))
 STREAM_JPEG_QUALITY = int(os.getenv("STREAM_JPEG_QUALITY", "70"))  # 0-100
 
+# Node role shapes app behavior: a "security" node is camera-first (person
+# notifications on); an "assistant" node is mic-first (no notifications).
+NODE_ROLE = os.getenv("NODE_ROLE", "security")
+
+# --- Conversation sessions ---
+# A pause longer than this between wake-word exchanges starts a new session
+# (= a new chat thread in the app) with fresh short-term context.
+SESSION_IDLE_SECONDS = float(os.getenv("SESSION_IDLE_SECONDS", "180"))
+
 
 # --- Secrets ---
 # Exposed as functions, not module constants, so that simply importing config
