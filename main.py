@@ -32,6 +32,7 @@ from audio.microphone import Microphone
 from audio.wakeword import WakeWord
 from audio.transcription import Transcriber, record_utterance
 from brain.client import BrainClient, BrainError
+from brain.maclink import MacLink
 from brain.conversation import Conversation
 
 logger = logging.getLogger("leofric")
@@ -52,6 +53,15 @@ class VisionWorker(threading.Thread):
         self.motion = MotionDetector()
         self.person = PersonDetector()
         self.identity = IdentityRecognizer()
+        self.maclink = MacLink()
+
+    def _log_event(self, event_type, metadata):
+        """Fast path to the Mac (returns snapshot_id if it photographed the
+        moment), then the durable path to Supabase with that id attached."""
+        snapshot_id = self.maclink.send_event(event_type, metadata)
+        if snapshot_id:
+            metadata = dict(metadata, snapshot_id=snapshot_id)
+        self.store.log_event(event_type, metadata)
 
     def run(self):
         self.camera.start()
@@ -75,7 +85,7 @@ class VisionWorker(threading.Thread):
                     if not motion_active:
                         motion_active = True
                         logger.info("motion (area=%d)", m.total_area)
-                        self.store.log_event("motion", {"area": m.total_area})
+                        self._log_event("motion", {"area": m.total_area})
                 elif motion_active and now - last_motion_at > self.MOTION_CLEAR_SECONDS:
                     motion_active = False
 
@@ -87,13 +97,13 @@ class VisionWorker(threading.Thread):
                         if not person_present:
                             person_present = True
                             logger.info("person detected (%d)", len(p.boxes))
-                            self.store.log_event("person", {"count": len(p.boxes)})
+                            self._log_event("person", {"count": len(p.boxes)})
                         # Identity (face) only while a person is present, throttled.
                         if now - last_identity_at >= self.IDENTITY_INTERVAL:
                             last_identity_at = now
                             for f in self.identity.classify(frame):
                                 logger.info("identity: %s (%.2f)", f.name, f.similarity)
-                                self.store.log_event(
+                                self._log_event(
                                     "identity",
                                     {"name": f.name, "similarity": round(f.similarity, 3)},
                                 )
