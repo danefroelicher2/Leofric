@@ -55,6 +55,12 @@ class ApiTest(unittest.TestCase):
         resp = self.client.post("/ingest/frame/leofric", data=b"not a jpeg")
         self.assertEqual(resp.status_code, 400)
 
+    def test_ingest_frame_rejects_bad_node(self):
+        resp = self.client.post(
+            "/ingest/frame/bad..name", data=TINY_JPEG, content_type="image/jpeg"
+        )
+        self.assertEqual(resp.status_code, 400)
+
     def test_ingest_then_node_online(self):
         resp = self.client.post(
             "/ingest/frame/leofric",

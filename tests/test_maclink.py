@@ -45,6 +45,14 @@ class MacLinkTest(unittest.TestCase):
         with mock.patch.object(link._session, "post", side_effect=OSError("down")):
             self.assertIsNone(link.send_event("person", {"count": 1}))  # no raise
 
+    def test_circuit_breaker_skips_http_while_down(self):
+        link = self._link()
+        with mock.patch.object(link._session, "post", side_effect=OSError("down")) as post:
+            self.assertIsNone(link.send_event("person", {"count": 1}))  # first: probes, fails
+            self.assertEqual(post.call_count, 1)
+            self.assertIsNone(link.send_event("person", {"count": 1}))  # circuit open: skipped
+            self.assertEqual(post.call_count, 1)  # no second HTTP call
+
 
 if __name__ == "__main__":
     unittest.main()

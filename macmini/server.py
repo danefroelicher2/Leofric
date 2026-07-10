@@ -128,6 +128,8 @@ def chat():
 
 @app.post("/ingest/frame/<node>")
 def ingest_frame(node):
+    if not _NODE_RE.fullmatch(node):
+        return jsonify(error="invalid node name"), 400
     jpeg = request.get_data()
     if not jpeg or len(jpeg) > MAX_FRAME_BYTES:
         return jsonify(error="expected a JPEG body under 5 MB"), 400
@@ -176,15 +178,17 @@ def feed():
 
 
 def _prune_snapshots():
-    files = sorted(
-        (
-            os.path.join(SNAPSHOT_DIR, name)
-            for name in os.listdir(SNAPSHOT_DIR)
-            if name.endswith(".jpg")
-        ),
-        key=os.path.getmtime,
-    )
-    for path in files[: max(0, len(files) - SNAPSHOT_KEEP)]:
+    entries = []
+    for name in os.listdir(SNAPSHOT_DIR):
+        if not name.endswith(".jpg"):
+            continue
+        path = os.path.join(SNAPSHOT_DIR, name)
+        try:
+            entries.append((os.path.getmtime(path), path))
+        except OSError:
+            continue  # vanished between listdir and stat — skip it
+    entries.sort()
+    for _, path in entries[: max(0, len(entries) - SNAPSHOT_KEEP)]:
         try:
             os.remove(path)
         except OSError:
