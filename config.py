@@ -106,6 +106,11 @@ UTTERANCE_MAX_SECONDS = float(os.getenv("UTTERANCE_MAX_SECONDS", "8"))
 # Current IP is 192.168.1.19 if a raw address is ever needed — see docs/MAC_STATUS.md.
 MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://Danes-Mac-mini-3.local:5000")
 
+# --- Frame streaming to the Mac (Phase 2A: live feed for the iOS app) ---
+STREAM_ENABLED = os.getenv("STREAM_ENABLED", "1").lower() not in ("0", "false", "no")
+STREAM_FPS = float(os.getenv("STREAM_FPS", "4"))
+STREAM_JPEG_QUALITY = int(os.getenv("STREAM_JPEG_QUALITY", "70"))  # 0-100
+
 
 # --- Secrets ---
 # Exposed as functions, not module constants, so that simply importing config

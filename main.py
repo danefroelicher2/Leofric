@@ -27,6 +27,7 @@ from vision.camera import Camera
 from vision.motion import MotionDetector
 from vision.person import PersonDetector
 from vision.identity import IdentityRecognizer
+from vision.streamer import FrameStreamer
 from audio.microphone import Microphone
 from audio.wakeword import WakeWord
 from audio.transcription import Transcriber, record_utterance
@@ -170,6 +171,12 @@ def main():
     audio = AudioWorker(store, stop_event)
     vision.start()
     audio.start()
+    # Streamer shares the vision worker's camera (one process may own the USB
+    # device); it tolerates the camera not being started for the first moments.
+    streamer = None
+    if config.STREAM_ENABLED:
+        streamer = FrameStreamer(vision.camera, stop_event)
+        streamer.start()
     logger.info("Leofric online. Ctrl+C to stop.")
 
     try:
@@ -179,6 +186,8 @@ def main():
         stop_event.set()
         vision.join(timeout=5)
         audio.join(timeout=5)
+        if streamer is not None:
+            streamer.join(timeout=5)
         logger.info("Leofric stopped.")
 
 
