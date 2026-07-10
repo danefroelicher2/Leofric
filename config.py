@@ -102,7 +102,9 @@ UTTERANCE_SILENCE_SECONDS = float(os.getenv("UTTERANCE_SILENCE_SECONDS", "1.0"))
 UTTERANCE_MAX_SECONDS = float(os.getenv("UTTERANCE_MAX_SECONDS", "8"))
 
 # --- Mac Mini brain ---
-MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://192.168.1.46:5000")
+# mDNS hostname survives DHCP drift (the Mac's IP is not reserved on the router).
+# Current IP is 192.168.1.19 if a raw address is ever needed — see docs/MAC_STATUS.md.
+MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://Danes-Mac-mini-3.local:5000")
 
 
 # --- Secrets ---

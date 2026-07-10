@@ -325,7 +325,7 @@ One power cable. Looks like it belongs on a wall.
 
 ## Mac Mini — Do Not Touch
 
-- IP: `192.168.1.46`
+- IP: `192.168.1.19` (DHCP-assigned, not reserved — see docs/MAC_STATUS.md)
 - Flask API: port 5000, auto-starts on boot
 - Ollama: Llama 3.2, auto-starts on boot
 - Do not rebuild, do not modify config — only add new endpoints

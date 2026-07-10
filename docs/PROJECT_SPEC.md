@@ -15,7 +15,7 @@ Leofric does not speak out loud. It watches, listens, thinks, and communicates t
 - ReSpeaker XVF3000 — 4-mic array, USB, far-field audio input, AEC and noise suppression built in
 - Logitech webcam — vision input
 - UE Boom — optional single alert tone only, not voice output
-- Mac Mini Apple Silicon (192.168.1.46) — always on, central brain, all heavy inference
+- Mac Mini Apple Silicon (Danes-Mac-mini-3.local, currently 192.168.1.19) — always on, central brain, all heavy inference
 - Fresh SD card — Raspberry Pi OS 64-bit, not yet flashed or configured
 
 ### Development Environment
@@ -83,7 +83,7 @@ Leofric does not speak out loud. It watches, listens, thinks, and communicates t
 
 ## The Central Brain — Mac Mini
 
-- Always on at 192.168.1.46
+- Always on at Danes-Mac-mini-3.local (currently 192.168.1.19)
 - Flask API server already configured and running on port 5000 — do not rebuild
 - Ollama already installed and running with Llama 3.2 — do not rebuild
 - Both Flask server and Ollama auto-start on boot via LaunchAgents — already configured
@@ -116,7 +116,7 @@ Compact hardware replacing the development rig. Clean mount. Single cable. Looks
 
 - Mac Mini Flask server: already configured, auto-starts on boot, do not rebuild
 - Mac Mini Ollama: already configured, Llama 3.2 downloaded, auto-starts on boot, do not rebuild
-- Mac Mini IP: 192.168.1.46, Flask on port 5000
+- Mac Mini: Danes-Mac-mini-3.local (currently 192.168.1.19), Flask on port 5000
 - Raspberry Pi: fresh SD card, not yet flashed or configured — Pi setup is the first task before any deployment
 - Supabase: needs a fresh project created — not yet configured for Leofric
 - Wake word: **openWakeWord** — free, offline, no account (replaced Porcupine/
