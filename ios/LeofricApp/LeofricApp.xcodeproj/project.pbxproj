@@ -8,7 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		1F2F03F115870B450642178A /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */; };
+		2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */; };
+		2EB6A82443A24BA8FD578E90 /* NodeStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */; };
 		8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */; };
+		8E20D9195783BB5A9C0E4129 /* LeofricAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */; };
 		DF0306E6B01713E916BEA840 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C307207B882CBB2955008D5 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -23,11 +26,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricAPI.swift; sourceTree = "<group>"; };
 		40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricApp.swift; sourceTree = "<group>"; };
 		40CA773A1679A40EE927DFAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5A9C49C80FE667C532AEAE36 /* LeofricAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LeofricAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E17449B830705D3A9ED1C84 /* LeofricApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LeofricApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C307207B882CBB2955008D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricAPITests.swift; sourceTree = "<group>"; };
+		F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeStatus.swift; sourceTree = "<group>"; };
 		FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -35,6 +41,7 @@
 		3F5C698B1B9DD641A4EF6076 /* LeofricAppTests */ = {
 			isa = PBXGroup;
 			children = (
+				EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */,
 				FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */,
 			);
 			path = LeofricAppTests;
@@ -49,12 +56,22 @@
 			);
 			sourceTree = "<group>";
 		};
+		840E97178946DE6A743D7AE4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		B9592B3A5A4FD04C865BA250 /* LeofricApp */ = {
 			isa = PBXGroup;
 			children = (
 				8C307207B882CBB2955008D5 /* Assets.xcassets */,
 				40CA773A1679A40EE927DFAE /* Info.plist */,
 				40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */,
+				840E97178946DE6A743D7AE4 /* Models */,
+				D50D2081B9C961533BCAECCA /* Networking */,
 			);
 			path = LeofricApp;
 			sourceTree = "<group>";
@@ -66,6 +83,14 @@
 				5A9C49C80FE667C532AEAE36 /* LeofricAppTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D50D2081B9C961533BCAECCA /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */,
+			);
+			path = Networking;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -160,6 +185,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E20D9195783BB5A9C0E4129 /* LeofricAPITests.swift in Sources */,
 				1F2F03F115870B450642178A /* SmokeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -168,7 +194,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */,
 				8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */,
+				2EB6A82443A24BA8FD578E90 /* NodeStatus.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
