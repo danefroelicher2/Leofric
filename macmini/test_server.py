@@ -209,6 +209,25 @@ class ApiTest(unittest.TestCase):
         finally:
             server.SNAPSHOT_KEEP = old_keep
 
+    # --- node roles ---
+
+    def test_node_role_from_frame_header(self):
+        self.client.post(
+            "/ingest/frame/leofric",
+            data=TINY_JPEG,
+            content_type="image/jpeg",
+            headers={"X-Node-Role": "security"},
+        )
+        with mock.patch.object(server, "_supabase_last_event_times", return_value={}):
+            nodes = self.client.get("/nodes").get_json()["nodes"]
+        self.assertEqual(nodes[0]["role"], "security")
+
+    def test_node_role_null_when_never_sent(self):
+        self._post_frame()  # no header
+        with mock.patch.object(server, "_supabase_last_event_times", return_value={}):
+            nodes = self.client.get("/nodes").get_json()["nodes"]
+        self.assertIsNone(nodes[0]["role"])
+
 
 if __name__ == "__main__":
     unittest.main()

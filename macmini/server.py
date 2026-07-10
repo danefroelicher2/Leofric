@@ -133,8 +133,9 @@ def ingest_frame(node):
         return jsonify(error="expected a JPEG body under 5 MB"), 400
     if not jpeg.startswith(b"\xff\xd8"):  # JPEG magic — cheap sanity check
         return jsonify(error="body is not a JPEG"), 400
+    role = request.headers.get("X-Node-Role") or None
     with _frames_lock:
-        _frames[node] = {"jpeg": jpeg, "at": time.time()}
+        _frames[node] = {"jpeg": jpeg, "at": time.time(), "role": role}
     return jsonify(ok=True)
 
 
@@ -226,6 +227,7 @@ def nodes():
     now = time.time()
     with _frames_lock:
         seen = {n: e["at"] for n, e in _frames.items()}
+        roles = {n: e.get("role") for n, e in _frames.items()}
     # Fallback: a node that isn't streaming (feature off, brain rebooted) still
     # counts as recently-seen if it logged an event to Supabase.
     for node_id, at in _supabase_last_event_times().items():
@@ -237,6 +239,7 @@ def nodes():
             "online": now - at <= NODE_ONLINE_WINDOW_SECONDS,
             "last_seen": _iso(at),
             "streaming": n in _frames,
+            "role": roles.get(n),
         }
         for n, at in sorted(seen.items())
     ]
