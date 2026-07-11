@@ -11,6 +11,7 @@ struct AlertDetailView: View {
     @EnvironmentObject private var store: LeofricStore
     @Environment(\.dismiss) private var dismiss
     @State private var image: UIImage?
+    @State private var isLoadingImage = true
 
     var body: some View {
         VStack(spacing: 16) {
@@ -18,9 +19,19 @@ struct AlertDetailView: View {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-            } else {
+            } else if isLoadingImage {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 200)
+            } else {
+                VStack(spacing: 8) {
+                    Image(systemName: "photo.slash")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+                    Text("No photo available")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 200)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -47,6 +58,7 @@ struct AlertDetailView: View {
     }
 
     private func loadImage() async {
+        defer { isLoadingImage = false }
         guard let snapshotID = event.metadata.snapshotID else { return }
         image = await ImageCache.shared.image(for: store.api.snapshotURL(id: snapshotID))
     }
