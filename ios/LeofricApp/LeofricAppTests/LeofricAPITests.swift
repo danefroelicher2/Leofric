@@ -1,6 +1,22 @@
 import XCTest
 @testable import LeofricApp
 
+extension URLRequest {
+    func httpBodyStreamData() -> Data? {
+        guard let stream = httpBodyStream else { return nil }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        let bufferSize = 4096
+        var buffer = [UInt8](repeating: 0, count: bufferSize)
+        while stream.hasBytesAvailable {
+            let read = stream.read(&buffer, maxLength: bufferSize)
+            if read > 0 { data.append(buffer, count: read) }
+        }
+        return data
+    }
+}
+
 final class MockURLProtocol: URLProtocol {
     static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
 
@@ -151,5 +167,53 @@ final class LeofricAPITests: XCTestCase {
             return (response, Data("{\"events\":[]}".utf8))
         }
         _ = try await makeAPI().fetchEvents(limit: 50, eventType: "person", nodeID: "leofric")
+    }
+
+    func testFetchConversationsDecodesAndFilters() async throws {
+        let json = """
+        {"conversations":[{"id":44,"created_at":"2026-07-10T20:21:32.355662+00:00",
+        "node_id":"app","session_id":"app-123","role":"leofric","content":"hi there"}]}
+        """
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/conversations")
+            XCTAssertTrue((request.url?.query ?? "").contains("session_id=app-123"))
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(json.utf8))
+        }
+        let messages = try await makeAPI().fetchConversations(sessionID: "app-123")
+        XCTAssertEqual(messages.count, 1)
+        XCTAssertEqual(messages[0].sessionID, "app-123")
+        XCTAssertEqual(messages[0].role, "leofric")
+    }
+
+    func testSendAppChatPostsAndDecodesSessionID() async throws {
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/app/chat")
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data("{\"response\":\"hi\",\"session_id\":\"app-999\"}".utf8))
+        }
+        let result = try await makeAPI().sendAppChat(message: "hello", sessionID: nil)
+        XCTAssertEqual(result.response, "hi")
+        XCTAssertEqual(result.sessionID, "app-999")
+    }
+
+    func testSendAppChatIncludesSessionIDInBodyWhenProvided() async throws {
+        var capturedBody: Data?
+        MockURLProtocol.requestHandler = { request in
+            capturedBody = request.httpBodyStreamData() ?? request.httpBody
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data("{\"response\":\"hi\",\"session_id\":\"app-1\"}".utf8))
+        }
+        _ = try await makeAPI().sendAppChat(message: "hello", sessionID: "app-1")
+        let body = try XCTUnwrap(capturedBody)
+        let json = try JSONSerialization.jsonObject(with: body) as? [String: Any]
+        XCTAssertEqual(json?["session_id"] as? String, "app-1")
+        XCTAssertEqual(json?["message"] as? String, "hello")
+    }
+
+    func testSnapshotURLHasNoQueryParams() {
+        let url = makeAPI().snapshotURL(id: "leofric-123")
+        XCTAssertEqual(url.path, "/snapshot/leofric-123")
+        XCTAssertNil(url.query)
     }
 }

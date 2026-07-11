@@ -5,6 +5,16 @@ enum LeofricAPIError: Error, Equatable {
     case httpStatus(Int)
 }
 
+struct AppChatResponse: Decodable {
+    let response: String
+    let sessionID: String
+
+    enum CodingKeys: String, CodingKey {
+        case response
+        case sessionID = "session_id"
+    }
+}
+
 /// The single HTTP client for talking to the Mac. The app never talks to
 /// Supabase or Ollama directly — everything goes through this one surface,
 /// matching macmini/server.py's contract exactly.
@@ -47,5 +57,34 @@ struct LeofricAPI {
         var components = URLComponents(url: baseURL.appendingPathComponent("feed"), resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "node", value: node)]
         return components.url!
+    }
+
+    func fetchConversations(limit: Int = 200, sessionID: String? = nil, nodeID: String? = nil) async throws -> [ConversationMessage] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("conversations"), resolvingAgainstBaseURL: false)!
+        var items = [URLQueryItem(name: "limit", value: String(limit))]
+        if let sessionID { items.append(URLQueryItem(name: "session_id", value: sessionID)) }
+        if let nodeID { items.append(URLQueryItem(name: "node_id", value: nodeID)) }
+        components.queryItems = items
+        let (data, response) = try await session.data(from: components.url!)
+        guard let http = response as? HTTPURLResponse else { throw LeofricAPIError.invalidResponse }
+        guard http.statusCode == 200 else { throw LeofricAPIError.httpStatus(http.statusCode) }
+        return try JSONDecoder().decode(ConversationsResponse.self, from: data).conversations
+    }
+
+    func sendAppChat(message: String, sessionID: String?, history: [[String: String]] = []) async throws -> AppChatResponse {
+        var body: [String: Any] = ["message": message, "history": history]
+        if let sessionID { body["session_id"] = sessionID }
+        var request = URLRequest(url: baseURL.appendingPathComponent("app/chat"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw LeofricAPIError.invalidResponse }
+        guard http.statusCode == 200 else { throw LeofricAPIError.httpStatus(http.statusCode) }
+        return try JSONDecoder().decode(AppChatResponse.self, from: data)
+    }
+
+    func snapshotURL(id: String) -> URL {
+        baseURL.appendingPathComponent("snapshot").appendingPathComponent(id)
     }
 }
