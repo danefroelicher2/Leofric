@@ -26,6 +26,10 @@ final class MJPEGStreamReader: NSObject, ObservableObject, URLSessionDataDelegat
         session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: nil)
     }
 
+    deinit {
+        session.invalidateAndCancel()
+    }
+
     func start(url: URL) {
         stop()
         buffer.removeAll()
