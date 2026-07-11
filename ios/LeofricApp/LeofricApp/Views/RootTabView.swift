@@ -6,7 +6,7 @@ struct RootTabView: View {
     @State private var selection = Tab.live
 
     private enum Tab: Hashable {
-        case live, alerts, nodes
+        case live, alerts, chats, nodes
     }
 
     init() {
@@ -25,6 +25,10 @@ struct RootTabView: View {
                 .tabItem { Label("Alerts", systemImage: "bell.fill") }
                 .tag(Tab.alerts)
 
+            ChatsListView()
+                .tabItem { Label("Chats", systemImage: "message.fill") }
+                .tag(Tab.chats)
+
             NodesView()
                 .tabItem { Label("Nodes", systemImage: "server.rack") }
                 .tag(Tab.nodes)
@@ -35,6 +39,7 @@ struct RootTabView: View {
             switch ProcessInfo.processInfo.environment["LEOFRIC_INITIAL_TAB"] {
             case "nodes": selection = .nodes
             case "alerts": selection = .alerts
+            case "chats": selection = .chats
             default: break
             }
         }

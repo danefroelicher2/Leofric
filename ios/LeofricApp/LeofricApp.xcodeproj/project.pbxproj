@@ -16,6 +16,7 @@
 		299C3847682A0403B359FDCE /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3568B7B419F0410106892F0 /* ImageCache.swift */; };
 		2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */; };
 		2EB6A82443A24BA8FD578E90 /* NodeStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */; };
+		3AE82D8DB0CD43AF2FAD7C9B /* ChatThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3333E724E371E90EB855537B /* ChatThreadView.swift */; };
 		6B909BB777DC14F8577F03F3 /* ConversationThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512A858EA4AF0820F5F496D2 /* ConversationThread.swift */; };
 		6EEFE326F93FE21D8CB90084 /* AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75F17D7AD9406586A7031199 /* AlertsView.swift */; };
 		6FECFDBF2502E4FAF842A036 /* AlertDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ACCEFFAD71BD3A25911E774 /* AlertDetailView.swift */; };
@@ -23,6 +24,7 @@
 		8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */; };
 		8E20D9195783BB5A9C0E4129 /* LeofricAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */; };
 		921BDB985402BF03002FF99A /* LiveFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F042367B42472AC81F32BF3 /* LiveFeedView.swift */; };
+		A459492643EC662A696CB700 /* ChatsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E719B55BF9220A7E684672DD /* ChatsListView.swift */; };
 		B4598A1BA7A32E90B79B275D /* MJPEGStreamReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD9CE2D88DB46CF20D73C /* MJPEGStreamReader.swift */; };
 		DF0306E6B01713E916BEA840 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C307207B882CBB2955008D5 /* Assets.xcassets */; };
 		F161ECC2B0122544B745D16D /* ConversationThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A1C8222A78485AEB1789F1 /* ConversationThreadTests.swift */; };
@@ -45,6 +47,7 @@
 		0B5EE1B5B6381D93A92112CC /* ConversationMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationMessage.swift; sourceTree = "<group>"; };
 		0F042367B42472AC81F32BF3 /* LiveFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFeedView.swift; sourceTree = "<group>"; };
 		11FBD9CE2D88DB46CF20D73C /* MJPEGStreamReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MJPEGStreamReader.swift; sourceTree = "<group>"; };
+		3333E724E371E90EB855537B /* ChatThreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatThreadView.swift; sourceTree = "<group>"; };
 		3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricAPI.swift; sourceTree = "<group>"; };
 		3D5F0BF5D98F005AD3FA81CD /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricApp.swift; sourceTree = "<group>"; };
@@ -64,6 +67,7 @@
 		B670A56AC6A88B38B21BCBE4 /* LeofricStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricStore.swift; sourceTree = "<group>"; };
 		C3568B7B419F0410106892F0 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		DFBD8D64C108A44C6CA9E05B /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		E719B55BF9220A7E684672DD /* ChatsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsListView.swift; sourceTree = "<group>"; };
 		EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricAPITests.swift; sourceTree = "<group>"; };
 		F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeStatus.swift; sourceTree = "<group>"; };
 		FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
@@ -174,6 +178,8 @@
 			children = (
 				7ACCEFFAD71BD3A25911E774 /* AlertDetailView.swift */,
 				75F17D7AD9406586A7031199 /* AlertsView.swift */,
+				E719B55BF9220A7E684672DD /* ChatsListView.swift */,
+				3333E724E371E90EB855537B /* ChatThreadView.swift */,
 				0F042367B42472AC81F32BF3 /* LiveFeedView.swift */,
 				B4669A84F6FC6DCE6E82FB77 /* NodesView.swift */,
 				DFBD8D64C108A44C6CA9E05B /* RootTabView.swift */,
@@ -289,6 +295,8 @@
 				6FECFDBF2502E4FAF842A036 /* AlertDetailView.swift in Sources */,
 				6EEFE326F93FE21D8CB90084 /* AlertsView.swift in Sources */,
 				013D6EC0EF16E16C2FE3C225 /* AppSettings.swift in Sources */,
+				3AE82D8DB0CD43AF2FAD7C9B /* ChatThreadView.swift in Sources */,
+				A459492643EC662A696CB700 /* ChatsListView.swift in Sources */,
 				7F91B8C167D3C309A9371E66 /* ConversationMessage.swift in Sources */,
 				6B909BB777DC14F8577F03F3 /* ConversationThread.swift in Sources */,
 				299C3847682A0403B359FDCE /* ImageCache.swift in Sources */,
