@@ -31,6 +31,18 @@ struct LeofricAPI {
         return try JSONDecoder().decode(NodesResponse.self, from: data).nodes
     }
 
+    func fetchEvents(limit: Int = 100, eventType: String? = nil, nodeID: String? = nil) async throws -> [LeofricEvent] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("events"), resolvingAgainstBaseURL: false)!
+        var items = [URLQueryItem(name: "limit", value: String(limit))]
+        if let eventType { items.append(URLQueryItem(name: "event_type", value: eventType)) }
+        if let nodeID { items.append(URLQueryItem(name: "node_id", value: nodeID)) }
+        components.queryItems = items
+        let (data, response) = try await session.data(from: components.url!)
+        guard let http = response as? HTTPURLResponse else { throw LeofricAPIError.invalidResponse }
+        guard http.statusCode == 200 else { throw LeofricAPIError.httpStatus(http.statusCode) }
+        return try JSONDecoder().decode(EventsResponse.self, from: data).events
+    }
+
     func feedURL(node: String) -> URL {
         var components = URLComponents(url: baseURL.appendingPathComponent("feed"), resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "node", value: node)]

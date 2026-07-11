@@ -93,4 +93,63 @@ final class LeofricAPITests: XCTestCase {
         XCTAssertEqual(url.path, "/feed")
         XCTAssertTrue(url.query?.contains("node=leofric") ?? false)
     }
+
+    func testFetchEventsDecodesPersonEvent() async throws {
+        let json = """
+        {"events":[{"id":7203,"created_at":"2026-07-10T15:50:37.221648+00:00",
+        "event_type":"person","node_id":"leofric","metadata":{"count":1}}]}
+        """
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/events")
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(json.utf8))
+        }
+        let events = try await makeAPI().fetchEvents()
+        XCTAssertEqual(events.count, 1)
+        XCTAssertEqual(events[0].eventType, "person")
+        XCTAssertEqual(events[0].metadata.count, 1)
+        XCTAssertNil(events[0].metadata.snapshotID)
+        XCTAssertNotNil(events[0].createdAtDate)
+    }
+
+    func testFetchEventsDecodesIdentityEventWithSnapshot() async throws {
+        let json = """
+        {"events":[{"id":7202,"created_at":"2026-07-10T15:50:21.107107+00:00",
+        "event_type":"identity","node_id":"leofric",
+        "metadata":{"name":"dane","similarity":0.608,"snapshot_id":"leofric-1783713537239"}}]}
+        """
+        MockURLProtocol.requestHandler = { request in
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(json.utf8))
+        }
+        let events = try await makeAPI().fetchEvents()
+        XCTAssertEqual(events[0].metadata.name, "dane")
+        XCTAssertEqual(events[0].metadata.snapshotID, "leofric-1783713537239")
+    }
+
+    func testFetchEventsDecodesMotionEventNoSnapshot() async throws {
+        let json = """
+        {"events":[{"id":1,"created_at":"2026-07-10T15:50:37.221648+00:00",
+        "event_type":"motion","node_id":"leofric","metadata":{"area":5661}}]}
+        """
+        MockURLProtocol.requestHandler = { request in
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(json.utf8))
+        }
+        let events = try await makeAPI().fetchEvents()
+        XCTAssertEqual(events[0].metadata.area, 5661)
+        XCTAssertNil(events[0].metadata.snapshotID)
+    }
+
+    func testFetchEventsPassesFilters() async throws {
+        MockURLProtocol.requestHandler = { request in
+            let query = request.url?.query ?? ""
+            XCTAssertTrue(query.contains("event_type=person"))
+            XCTAssertTrue(query.contains("node_id=leofric"))
+            XCTAssertTrue(query.contains("limit=50"))
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data("{\"events\":[]}".utf8))
+        }
+        _ = try await makeAPI().fetchEvents(limit: 50, eventType: "person", nodeID: "leofric")
+    }
 }
