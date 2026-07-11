@@ -7,6 +7,8 @@ import UserNotifications
 final class NotificationService: UNNotificationServiceExtension {
     private var contentHandler: ((UNNotificationContent) -> Void)?
     private var bestAttempt: UNMutableNotificationContent?
+    private var downloadTask: URLSessionDownloadTask?
+    private let lock = NSLock()
 
     override func didReceive(_ request: UNNotificationRequest,
                              withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
@@ -18,11 +20,11 @@ final class NotificationService: UNNotificationServiceExtension {
               let baseString = UserDefaults(suiteName: "group.com.danefroelicher.Leofric")?
                   .string(forKey: "leofric.baseURLString"),
               let base = URL(string: baseString)
-        else { contentHandler(bestAttempt ?? request.content); return }
+        else { deliver(bestAttempt ?? request.content); return }
 
         let url = base.appendingPathComponent("snapshot").appendingPathComponent(snapshotID)
-        let task = URLSession.shared.downloadTask(with: url) { tempURL, _, _ in
-            defer { contentHandler(content) }
+        downloadTask = URLSession.shared.downloadTask(with: url) { [weak self] tempURL, _, _ in
+            defer { self?.deliver(content) }
             guard let tempURL else { return }
             let dest = FileManager.default.temporaryDirectory
                 .appendingPathComponent(snapshotID + ".jpg")
@@ -31,12 +33,27 @@ final class NotificationService: UNNotificationServiceExtension {
                 content.attachments = [attachment]
             }
         }
-        task.resume()
+        downloadTask?.resume()
     }
 
     override func serviceExtensionTimeWillExpire() {
-        if let handler = contentHandler, let content = bestAttempt {
-            handler(content)
-        }
+        // iOS is about to kill the extension: cancel the in-flight download and
+        // deliver whatever we have. deliver() is idempotent, so if the download
+        // finishes at the same moment, the handler still fires exactly once.
+        downloadTask?.cancel()
+        deliver(bestAttempt)
+    }
+
+    /// Calls the content handler at most once — whichever of the download
+    /// completion or the timeout fires first wins; later calls are no-ops.
+    /// Calling a notification-extension handler twice is undefined behavior,
+    /// and the download-past-timeout race is real over slow links (Tailscale).
+    private func deliver(_ content: UNNotificationContent?) {
+        lock.lock()
+        let handler = contentHandler
+        contentHandler = nil
+        lock.unlock()
+        guard let handler, let content else { return }
+        handler(content)
     }
 }
