@@ -9,11 +9,15 @@ final class AppSettings: ObservableObject {
     }
 
     static let defaultBaseURLString = "http://Danes-Mac-mini-3.local:5000"
+    static let appGroup = "group.com.danefroelicher.Leofric"
 
     private let defaults: UserDefaults
 
     @Published var baseURLString: String {
-        didSet { defaults.set(baseURLString, forKey: Keys.baseURLString) }
+        didSet {
+            defaults.set(baseURLString, forKey: Keys.baseURLString)
+            UserDefaults(suiteName: Self.appGroup)?.set(baseURLString, forKey: Keys.baseURLString)
+        }
     }
 
     init(defaults: UserDefaults = .standard) {

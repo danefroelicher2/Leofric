@@ -25,8 +25,10 @@
 		8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */; };
 		8E20D9195783BB5A9C0E4129 /* LeofricAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */; };
 		921BDB985402BF03002FF99A /* LiveFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F042367B42472AC81F32BF3 /* LiveFeedView.swift */; };
+		9FC2B0B3B6BD94913A0BECFE /* NotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 67369047A538355EA1FE8A7A /* NotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A459492643EC662A696CB700 /* ChatsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E719B55BF9220A7E684672DD /* ChatsListView.swift */; };
 		B4598A1BA7A32E90B79B275D /* MJPEGStreamReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD9CE2D88DB46CF20D73C /* MJPEGStreamReader.swift */; };
+		C0F48E8E9D3CA47D3D4494D7 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B534506F85911DD3BE50B5 /* NotificationService.swift */; };
 		DF0306E6B01713E916BEA840 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C307207B882CBB2955008D5 /* Assets.xcassets */; };
 		F161ECC2B0122544B745D16D /* ConversationThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A1C8222A78485AEB1789F1 /* ConversationThreadTests.swift */; };
 		F43F84420BF678B400FC9435 /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BD455BF0B806F87F664F /* AppSettingsTests.swift */; };
@@ -35,6 +37,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0335BE2AE17E140D3D5AEBF0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5BE5D80916082EF6FC489498 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E32560322B76677DC2D0C035;
+			remoteInfo = NotificationService;
+		};
 		1E895249DB551939C2D65E29 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5BE5D80916082EF6FC489498 /* Project object */;
@@ -43,6 +52,20 @@
 			remoteInfo = LeofricApp;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		22076C22B0AF2B0ED9761F05 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9FC2B0B3B6BD94913A0BECFE /* NotificationService.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0B5EE1B5B6381D93A92112CC /* ConversationMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationMessage.swift; sourceTree = "<group>"; };
@@ -57,17 +80,21 @@
 		512A858EA4AF0820F5F496D2 /* ConversationThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationThread.swift; sourceTree = "<group>"; };
 		59A1C8222A78485AEB1789F1 /* ConversationThreadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationThreadTests.swift; sourceTree = "<group>"; };
 		5A9C49C80FE667C532AEAE36 /* LeofricAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LeofricAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		67369047A538355EA1FE8A7A /* NotificationService.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B9CC9F13831A8506447E9ED /* PushRegistrar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistrar.swift; sourceTree = "<group>"; };
 		6E17449B830705D3A9ED1C84 /* LeofricApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LeofricApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		75F17D7AD9406586A7031199 /* AlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsView.swift; sourceTree = "<group>"; };
 		7A7F3C2B48DFD2BD92BB21FA /* ImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheTests.swift; sourceTree = "<group>"; };
 		7ACCEFFAD71BD3A25911E774 /* AlertDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertDetailView.swift; sourceTree = "<group>"; };
+		81B534506F85911DD3BE50B5 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		8C307207B882CBB2955008D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9940B33A218AD54544FF0CDB /* LeofricApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LeofricApp.entitlements; sourceTree = "<group>"; };
 		9CF35B036CCD194095EA2D78 /* LeofricEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricEvent.swift; sourceTree = "<group>"; };
 		A11788988102C5F223F31EB6 /* MJPEGStreamReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MJPEGStreamReaderTests.swift; sourceTree = "<group>"; };
+		AE1B16CBE3AA90BADFA6B564 /* NotificationService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotificationService.entitlements; sourceTree = "<group>"; };
 		B4669A84F6FC6DCE6E82FB77 /* NodesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodesView.swift; sourceTree = "<group>"; };
 		B670A56AC6A88B38B21BCBE4 /* LeofricStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricStore.swift; sourceTree = "<group>"; };
+		B7DC614DA5C53C9E3DF8C10D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C3568B7B419F0410106892F0 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		DFBD8D64C108A44C6CA9E05B /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		E719B55BF9220A7E684672DD /* ChatsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsListView.swift; sourceTree = "<group>"; };
@@ -114,6 +141,16 @@
 			path = LeofricAppTests;
 			sourceTree = "<group>";
 		};
+		583E9F5CA57293C7DD695E4A /* NotificationService */ = {
+			isa = PBXGroup;
+			children = (
+				B7DC614DA5C53C9E3DF8C10D /* Info.plist */,
+				AE1B16CBE3AA90BADFA6B564 /* NotificationService.entitlements */,
+				81B534506F85911DD3BE50B5 /* NotificationService.swift */,
+			);
+			path = NotificationService;
+			sourceTree = "<group>";
+		};
 		5A775F6247C9CCD4CAECABF2 /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -127,6 +164,7 @@
 			children = (
 				B9592B3A5A4FD04C865BA250 /* LeofricApp */,
 				3F5C698B1B9DD641A4EF6076 /* LeofricAppTests */,
+				583E9F5CA57293C7DD695E4A /* NotificationService */,
 				CC387BC7B1B6F55828F1C284 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -174,6 +212,7 @@
 			children = (
 				6E17449B830705D3A9ED1C84 /* LeofricApp.app */,
 				5A9C49C80FE667C532AEAE36 /* LeofricAppTests.xctest */,
+				67369047A538355EA1FE8A7A /* NotificationService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -209,10 +248,12 @@
 			buildPhases = (
 				E3697DC5C8518D25BE53542E /* Sources */,
 				6414F309B561C6E5989F214C /* Resources */,
+				22076C22B0AF2B0ED9761F05 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B741D43967D92AD982A08677 /* PBXTargetDependency */,
 			);
 			name = LeofricApp;
 			packageProductDependencies = (
@@ -239,6 +280,23 @@
 			productReference = 5A9C49C80FE667C532AEAE36 /* LeofricAppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		E32560322B76677DC2D0C035 /* NotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 71F78CBB699822C27C0822F1 /* Build configuration list for PBXNativeTarget "NotificationService" */;
+			buildPhases = (
+				932E3D03AC31E43ED61833E7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NotificationService;
+			packageProductDependencies = (
+			);
+			productName = NotificationService;
+			productReference = 67369047A538355EA1FE8A7A /* NotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -252,6 +310,9 @@
 						ProvisioningStyle = Automatic;
 					};
 					C1E7CEB89F85286BB5BD3E5F = {
+						ProvisioningStyle = Automatic;
+					};
+					E32560322B76677DC2D0C035 = {
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -272,6 +333,7 @@
 			targets = (
 				5381046CEA422F550C5F4248 /* LeofricApp */,
 				C1E7CEB89F85286BB5BD3E5F /* LeofricAppTests */,
+				E32560322B76677DC2D0C035 /* NotificationService */,
 			);
 		};
 /* End PBXProject section */
@@ -288,6 +350,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		932E3D03AC31E43ED61833E7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0F48E8E9D3CA47D3D4494D7 /* NotificationService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A8F7DB4BAB88573AFC0CE8A9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -333,6 +403,11 @@
 			isa = PBXTargetDependency;
 			target = 5381046CEA422F550C5F4248 /* LeofricApp */;
 			targetProxy = 1E895249DB551939C2D65E29 /* PBXContainerItemProxy */;
+		};
+		B741D43967D92AD982A08677 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E32560322B76677DC2D0C035 /* NotificationService */;
+			targetProxy = 0335BE2AE17E140D3D5AEBF0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -435,6 +510,38 @@
 			};
 			name = Debug;
 		};
+		839B13B9CF8DABB07E9BAF7C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NotificationService/NotificationService.entitlements;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.danefroelicher.Leofric.NotificationService;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		884C455B2093087645D3FF5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NotificationService/NotificationService.entitlements;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.danefroelicher.Leofric.NotificationService;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		BC4CAACF5325DC6216303565 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -534,6 +641,15 @@
 			buildConfigurations = (
 				DB88C00AA251409E7A501F9F /* Debug */,
 				16ED325E46102E51A1074FF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		71F78CBB699822C27C0822F1 /* Build configuration list for PBXNativeTarget "NotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				839B13B9CF8DABB07E9BAF7C /* Debug */,
+				884C455B2093087645D3FF5B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

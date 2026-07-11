@@ -36,6 +36,29 @@ targets:
     scheme:
       testTargets:
         - LeofricAppTests
+    dependencies:
+      - target: NotificationService
+        embed: true
+  NotificationService:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: NotificationService
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.danefroelicher.Leofric.NotificationService
+    info:
+      path: NotificationService/Info.plist
+      properties:
+        CFBundleDisplayName: LeofricNotification
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
+    entitlements:
+      path: NotificationService/NotificationService.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.danefroelicher.Leofric
   LeofricAppTests:
     type: bundle.unit-test
     platform: iOS
