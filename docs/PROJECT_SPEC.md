@@ -160,16 +160,19 @@ Compact hardware replacing the development rig. Clean mount. Single cable. Looks
 
 ---
 
-## Current State — Read This First (updated 2026-07-10)
+## Current State — Read This First (updated 2026-07-11)
 
 - **Phase 1 COMPLETE and hardened.** The Pi runs the full loop 24/7 under systemd
   (vision: motion → person → identity; audio: wake word → transcribe → brain →
   reply; everything logged to Supabase) and survives reboots. Reliability work
   done: persistent journald, hardware watchdog, EEPROM updated, active cooler
   installed, PMIC latch-off incident root-caused (see docs/MAC_STATUS.md).
-- **Phase 2A COMPLETE.** The Mac API serves `/chat`, `/events`, `/conversations`,
-  `/nodes`, `/feed` (MJPEG), `/ingest/frame/<node>`; the Pi streams ~4 fps to it.
-  Verified end-to-end on hardware. See macmini/README.md for the contract.
+- **ALL of Phase 2 CODE COMPLETE (2A–2E), on `main`.** Mac API (2A) +
+  security backend/snapshots (2B) + the SwiftUI iOS app `ios/LeofricApp/` (2C
+  Live/Nodes, 2D Alerts/Chats) + push notifications & the Notification Service
+  Extension (2E) are all built and unit-tested. Live/Chats/Alerts confirmed on the
+  builder's physical iPhone. See docs/ROADMAP.md for per-sub-phase detail and the
+  executed plans in `docs/superpowers/plans/`.
 - Mac Mini brain: reboot-proof (reboot test passed), model pinned resident
   (`keep_alive:-1`), reachable at `Danes-Mac-mini-3.local:5000` — hostname, not
   IP, is canonical. Do not rebuild; only extend.
@@ -177,7 +180,9 @@ Compact hardware replacing the development rig. Clean mount. Single cable. Looks
   connector, service key on the Pi only.
 - Wake word: **openWakeWord**, pretrained "hey Jarvis" until the custom
   "hey Leofric" model is trained (free Colab; one-file swap — see DECISIONS ADR-003).
-- Next: Phase 2B (security backend), then the iOS app (2C–2E) per docs/ROADMAP.md.
+- Next: on-device testing — push notifications (Stage C) + Tailscale/remote
+  (Stage D) per **docs/PHASE_2E_SETUP.md**, then the Phase 2 review gate, then
+  Phase 3 (smart alerting first — see ADR-008). Event logging is temporarily off.
 - Prior project Mercia used a similar architecture — Leofric codebase is written entirely from scratch, do not reference or copy Mercia code
 
 ---

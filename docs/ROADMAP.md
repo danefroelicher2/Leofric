@@ -228,7 +228,11 @@ brain → coherent reply, all from the background service. Also hardened
 transcription with faster-whisper `vad_filter=True` to stop hallucination on
 marginal audio (see CLAUDE.md). **PHASE 1 IS DONE — next is Phase 2 (iOS app).**
 
-`← YOU ARE HERE` → Phase 2B (security backend), then 2C (iOS app core).
+`← YOU ARE HERE` → Phase 2 **code is COMPLETE** (2A–2E all built & on `main`).
+On-device testing in progress: Live/Chats/Alerts confirmed on the builder's iPhone;
+**next is Stage C (push) + Stage D (Tailscale) via `docs/PHASE_2E_SETUP.md`**, then
+the Phase 2 review `[DECISION]` gate at the end of the 2E section below. Event
+logging is temporarily off (see the 2E "On-device testing status" note).
 
 ---
 

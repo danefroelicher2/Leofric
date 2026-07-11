@@ -1,10 +1,23 @@
 # Leofric — Mac Mini Brain: Status
 
-**Machine:** `Danes-Mac-mini-3.local` · **Last full verification: 2026-07-10** (on the Mac itself)
-**Where we are:** Phase 1 COMPLETE. The brain is healthy, verified end-to-end from the Pi,
-and the cold-boot prerequisites are in place. Two items remain before the Mac is declared
-bulletproof: the reboot test and Ollama keep-alive (details below). Next build phase: 2A
-(expand the Mac API for the iOS app).
+**Machine:** `Danes-Mac-mini-3.local` · **Hardening verified 2026-07-10; Phase 2 code deployed 2026-07-11**
+**Where we are:** Phase 1 + all Phase 2 code COMPLETE. The brain is healthy, reboot-proof
+(cold-boot test passed), model pinned resident. The sections below are the durable
+hardening record — still accurate. The Phase 2 additions are summarized here; the rest of
+this doc is the hardening detail.
+
+## Phase 2 additions to the Mac brain (2026-07-11)
+The Flask server (`~/leofric-brain/server.py`, mirror of repo `macmini/server.py`) now
+serves, beyond `/chat`: `/events`, `/conversations`, `/nodes`, `/feed` (MJPEG),
+`/ingest/frame/<node>`, `/ingest/event/<node>` (captures a snapshot per person/identity
+event → `~/leofric-brain/snapshots/`, pruned at 2000), `/snapshot/<id>`, `/app/chat`
+(typed chats + session), and `/devices` (APNs token registration → `~/leofric-brain/devices.json`).
+Push (`macmini/notify.py` + `macmini/apns.py`) is deployed but **no-ops until APNs creds
+exist** — the builder adds `APNS_KEY_PATH/KEY_ID/TEAM_ID/BUNDLE_ID/USE_SANDBOX` + the `.p8`
+to `~/leofric-brain/.env` per `docs/PHASE_2E_SETUP.md`. New venv deps: `httpx[http2]`,
+`PyJWT[crypto]` (see DECISIONS ADR-007). Redeploy = `cp macmini/*.py ~/leofric-brain/` then
+`kill $(lsof -tiTCP:5000 -sTCP:LISTEN)`. **Note:** snapshot capture is currently idle because
+the Pi has event logging off (ADR-008); `snapshots/` was cleared 2026-07-11.
 
 ---
 

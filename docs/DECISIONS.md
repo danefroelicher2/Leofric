@@ -3,6 +3,50 @@
 A running log of notable technical decisions and deviations from the original
 spec, with the reasoning — so the "why" behind each choice isn't lost later.
 
+## ADR-008: Event logging temporarily disabled via a config kill switch
+**Date:** 2026-07-11
+
+On-device testing showed the vision pipeline logs an identity/person event every few
+seconds while someone is continuously in frame — each capturing a snapshot — which
+floods the app's Alerts tab and fills snapshot storage (127 MB of test clips in one
+session). Rather than rush a design, added `config.EVENT_LOGGING_ENABLED` (default on
+in the repo; set to `0` in the Pi's `.env` for now) that gates `main.py`'s
+`_log_event`. Off = detection + live feed still run, but no events/snapshots are
+logged. **Temporary.** The real fix is debounced/smart alerting (one alert per
+arrival, snapshot only on new/unknown), scheduled as the first Phase 3 task; the flag
+gets turned back on then. Do not delete the flag or "fix" the quiet Alerts before
+that work exists.
+
+## ADR-007: Push notifications add httpx[http2] + PyJWT[crypto] (deliberate dep exception)
+**Date:** 2026-07-11
+
+Every prior phase kept the Mac's venv to "flask + requests only." APNs cannot honor
+that: Apple mandates **HTTP/2** (requests speaks only HTTP/1.1) and **ES256-signed
+JWT** auth (requests can't sign). So Phase 2E deliberately adds `httpx[http2]` and
+`PyJWT[crypto]` — the minimum to talk to APNs — documented in `macmini/requirements.txt`
+and this ADR. Guardrails: `apns.py` is the only importer; `server.py`'s import shim
+degrades push to a no-op (`APNsClient = None`) if the deps are missing, so a redeploy
+onto a venv without them still starts the core brain (`/chat`, `/feed`). Don't remove
+these deps thinking they're stray — they're load-bearing for push.
+
+## ADR-006: iOS live feed parses JPEG SOI/EOI markers, NOT multipart framing
+**Date:** 2026-07-10
+
+The Mac's `/feed` serves standard `multipart/x-mixed-replace` MJPEG (boundary
+`--leofricframe` + per-part headers). The obvious iOS client parses that framing —
+and it was built that way first, passing unit tests against synthetic multipart
+bytes, yet the Live tab was a permanent spinner on device. Root cause (found by
+hex-dumping real bytes): **iOS's `URLSession` has built-in `multipart/x-mixed-replace`
+handling and strips the boundary/headers before the delegate ever sees them**,
+delivering raw JPEG bytes only (first bytes `ff d8 ff e0` = JPEG SOI/JFIF, never the
+boundary text). So `MJPEGStreamReader.extractFrame` detects frames by JPEG's own
+**SOI (0xFFD8) / EOI (0xFFD9)** markers instead. **Do not "fix" this back to multipart
+parsing** — it will silently break the feed on device (a class of bug unit tests
+can't catch; live-device verification is required for any change here). Accepted
+residual risk noted in the source: SOI/EOI scanning doesn't walk JPEG segment
+lengths, so a stray `FFD9` in table data could truncate a frame early (self-healing,
+low-probability with standard `cv2.imencode` output).
+
 ## ADR-005: Mac Mini brain built from scratch (spec assumed it existed)
 **Date:** 2026-07-05
 

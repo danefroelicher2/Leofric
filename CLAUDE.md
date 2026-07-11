@@ -1,7 +1,14 @@
 # CLAUDE.md — Leofric project state & handoff
 
 Read this first. It's the working memory for any Claude instance on this project.
-Last updated: 2026-07-05 (end of a long build session).
+Last updated: 2026-07-11 (end of the Phase 2 build sprint — 2A–2E code complete).
+
+**If you are a fresh session starting here:** Phase 1 (the Pi core loop) and all of
+Phase 2's *code* (2A–2E: the Mac app-API, the iOS app, push notifications) are DONE
+and on `main`. The immediate next work is **on-device testing**, not building. The
+builder will point you at `docs/PHASE_2E_SETUP.md` to finish push/Tailscale testing,
+then at `docs/ROADMAP.md` for the Phase 2 review. Read `docs/ROADMAP.md` (the
+"On-device testing status" note under Phase 2E) for exactly where things stand.
 
 ---
 
@@ -12,69 +19,99 @@ game: a portfolio-grade distributed system for defense/robotics/intel roles. See
 `docs/PROJECT_SPEC.md`, `docs/BUILDER_PROFILE.md`, `docs/ROADMAP.md`.
 
 ## The three machines
-- **Windows PC** (this dev machine): the git repo lives here at
-  `C:\Users\danef\Downloads\Programming\Current\Leofric`. Remote:
-  `github.com/danefroelicher2/Leofric` (**private**).
+- **Mac Mini** (`Danes-Mac-mini-3.local`) — **now the active dev machine AND the
+  brain.** Git repo clone at `/Users/danefroelicher/Leofric` (where Claude works);
+  Xcode 26.2 builds the iOS app; Ollama (`llama3.2`) behind the Flask brain on `:5000`
+  at `~/leofric-brain/server.py`, auto-starts via LaunchAgent `com.leofric.brain`.
+  **Use the `.local` hostname, not the IP** — DHCP drifts (was `.46`, now `.19`, no
+  router reservation). See `docs/MAC_STATUS.md`. **Shared machine:** also runs the
+  builder's unrelated live jobs (`com.dane.fbscalper` etc.) — warn before reboots/kills
+  (there's an auto-memory about this).
 - **Raspberry Pi 5** (`leofric.local`, user `dane`, ~`192.168.1.20`): the sensing
   node. Runs this repo at `/home/dane/leofric`, venv at `venv/`, Debian trixie,
   **Python 3.13**, aarch64. Camera = Logitech BRIO `/dev/video0`; mic = ReSpeaker
-  4-mic array (ALSA card 2, opens as 16 kHz mono).
-- **Mac Mini brain** (`Danes-Mac-mini-3.local`): Ollama (`llama3.2`) behind a
-  Flask server on `:5000` at `~/leofric-brain/server.py`, auto-starts via a
-  LaunchAgent. **Use the `.local` hostname, not the IP** — DHCP drifts (it was
-  `.46`, now `.19`, no reservation possible on the router). See `docs/MAC_STATUS.md`.
+  4-mic array (ALSA card 2, opens as 16 kHz mono). Reachable by SSH from the Mac.
+- **Windows PC** (`github.com/danefroelicher2/Leofric`, **private** remote): the
+  original dev machine and where the repo started; **no longer the active dev machine**
+  (superseded by the Mac). Its clone may be stale — treat the Mac + `origin/main` as truth.
 
-## Workflow (important)
-Develop on Windows → commit → push → **`git pull` on the Pi** → run/test on real
-hardware. I (Claude) can edit Windows files directly but **cannot** touch the Pi
-or Mac directly — I hand the user commands. The user runs two terminal tabs:
-- **Pi tab**: prompt `(venv) dane@leofric:~/leofric $` — runs Leofric/bash. `&&` OK.
-- **Windows tab**: prompt `PS C:\Users\danef>` — for `scp` file transfers. **PowerShell
-  5.1: `&&` is NOT valid.** A very common mistake is running a command in the wrong
-  tab — call out which tab every time.
-To view Pi files (images/audio), `scp` them to Windows and open. Activate the venv
-in a fresh SSH session: `cd ~/leofric && source venv/bin/activate`.
+## Workflow (important — this changed in the Phase 2 sprint)
+**Development is now done on the Mac Mini**, where a clone of the repo lives at
+`/Users/danefroelicher/Leofric` (this is where you, Claude, work). A Claude session
+on the Mac has **direct Bash access, edits repo files directly, and can SSH straight
+to the Pi** (`ssh dane@leofric.local` — the Mac's key is already in the Pi's
+authorized_keys). No more Windows/scp dance. (The old Windows clone may still exist
+but is not the active dev machine.)
 
-## Status — Phase 1 (Core Loop) — ✅ COMPLETE (2026-07-06)
-**1A–1K ALL COMPLETE and verified on hardware. Next phase is 2 (iOS app).**
-- 1A hardware, 1B skeleton+venv+deploy key, 1C camera (threaded, 720p),
-  1D motion (MOG2), 1E person (**MobileNet-SSD DNN**), 1F identity (**YuNet+SFace**,
-  builder "dane" enrolled at 0.80), 1G Supabase (events+conversations, RLS),
-  1H wake word (**openWakeWord**, currently pretrained **"hey jarvis"**),
-  1I transcription (**faster-whisper base**), 1J brain (**Ollama llama3.2** on the
-  Mac — we built it; the spec wrongly assumed it existed).
-- **1K**: `main.py` (VisionWorker + AudioWorker threads, graceful shutdown) +
-  `deploy/leofric.service` (systemd) installed and **verified on hardware**. Service
-  is `enabled` + `active (running)`; **reboot test PASSED** (Pi power-cycled, Leofric
-  auto-started in ~30s with nobody logged in). Full voice loop works **headless**
-  (wake word → transcribe → Mac brain → coherent reply → Supabase). Vision (motion +
-  person + identity `dane`) logging cleanly the whole time.
-- **Transcription hardening (2026-07-06):** enabled faster-whisper `vad_filter=True`
-  (Silero VAD) — kills the "invent words from marginal/far-field audio" hallucination
-  (e.g. it used to emit "The problem is it." from noise). Weak audio now returns
-  empty instead of a false transcript. Zero added latency. Root cause of the earlier
-  garble was diagnosed as background audio (a video playing) + Whisper `base`
-  hallucinating on non-speech — NOT CPU contention (disproved: clean transcription
-  under full vision load). `scripts/measure_audio.py` added as a live mic-RMS meter
-  for VAD tuning (room ambient ~115 RMS, speech 1500–5000+, threshold 500 confirmed).
+**Two separate checkouts on the Mac — don't confuse them:**
+- `/Users/danefroelicher/Leofric` — the git repo you edit (Pi code, Mac server code,
+  iOS app, docs).
+- `~/leofric-brain/` — the **running Mac brain deployment** (server.py + venv +
+  `.env` + snapshots/ + devices.json). NOT a git repo. Deploy Mac server changes with
+  `cp macmini/server.py ~/leofric-brain/server.py` (+ any `macmini/*.py`), then
+  `kill $(lsof -tiTCP:5000 -sTCP:LISTEN)` (launchd `com.leofric.brain` restarts it).
 
-### NEXT TASK — Phase 2A (iOS app begins)
-Phase 1 is done. Start Phase 2 (see docs/ROADMAP.md Phase 2). First up: expand the
-Mac Mini Flask API (`GET /events`, `GET /feed` MJPEG, `GET /conversations`,
-`GET /nodes`, existing `POST /chat`) so the iOS app has data to consume, then
-scaffold the Xcode project on the Mac.
+**Deploy loop:**
+- **Pi code** (`main.py`, `vision/`, `audio/`, `config.py`, etc.): commit → push →
+  `ssh dane@leofric.local "cd ~/leofric && git pull --ff-only && sudo systemctl restart leofric"`.
+- **Mac server** (`macmini/`): commit → push → `cp` to `~/leofric-brain/` + restart (above).
+- **iOS app** (`ios/LeofricApp/`): built in **Xcode on the Mac**; project generated by
+  **XcodeGen** (`project.yml` → `.xcodeproj`; run `xcodegen generate` after adding
+  files). Headless build/test: `xcodebuild ... -destination 'platform=iOS Simulator,id=<iPhone 17 Pro UDID>'`.
+  The builder builds to a physical iPhone from Xcode (selects signing team).
+- To view Pi images/audio, `scp` from the Pi to the Mac and open with the Read tool.
 
-**Small durability follow-up before/while doing Phase 2:** Mac Mini reboot test —
-the brain LaunchAgent was only kill-tested, never reboot-tested. Reboot the Mac,
-then from the Pi `curl http://Danes-Mac-mini-3.local:5000/` to confirm the brain
-auto-starts. This closes the last "a week later" gap on the Mac side.
+## Status — Phase 1 ✅ COMPLETE · Phase 2 (code) ✅ COMPLETE · on-device testing IN PROGRESS
 
-### Deferred / TODO
+**Phase 1 (Core Loop) — done & hardened.** Pi runs the full loop 24/7 under systemd
+(vision: motion→person→identity via MobileNet-SSD + YuNet/SFace, builder "dane"
+enrolled; audio: openWakeWord "hey jarvis" → faster-whisper → Mac brain → reply;
+all logged to Supabase). Survives reboots. Reliability fixes done: persistent
+journald, hardware watchdog, EEPROM update, active cooler installed. See git history
+and docs/MAC_STATUS.md for the incident/fix record.
+
+**Phase 2 (App) — all code complete, on `main`, mostly verified live:**
+- **2A** Mac app-API: `/events`, `/conversations`, `/nodes`, `/feed` (MJPEG),
+  `/ingest/frame/<node>` + the Pi streams ~4fps to it. ✅ live-verified.
+- **2B** Security backend: Pi pushes events to the Mac (`/ingest/event/<node>`),
+  Mac captures a snapshot per person/identity event (`/snapshot/<id>`, pruned),
+  `session_id` on conversations, node roles. ✅ live-verified.
+- **2C** iOS app core (`ios/LeofricApp/`, SwiftUI, XcodeGen, zero 3rd-party deps):
+  Live tab (custom MJPEG reader — **AVPlayer can't play MJPEG; iOS URLSession strips
+  the multipart framing so we parse JPEG SOI/EOI markers**) + Nodes tab. ✅ live-verified.
+- **2D** Alerts tab (event timeline + snapshot thumbnails + type filter) + Chats tab
+  (voice sessions auto-surface as threads, typed chat via new `POST /app/chat`).
+  ✅ live-verified in simulator AND on the builder's iPhone.
+- **2E** Push notifications: Mac notification engine (`macmini/notify.py`, identity-
+  aware, 60s cooldown, unknown-always) + APNs sender (`macmini/apns.py`, HTTP/2 +
+  ES256 JWT; **adds `httpx[http2]` + `PyJWT[crypto]` to the venv — the only allowed
+  new deps, APNs needs them**) + `POST /devices` + best-effort push hook in ingest.
+  iOS: notification registration + a Notification Service Extension (rich photo push).
+  **Code done + unit-tested + deployed; real APNs delivery NOT yet tested** (needs the
+  builder's `.p8` key + physical device + Tailscale — that's the current next step).
+
+### On-device testing status (2026-07-11) — where a fresh session picks up
+App built to the builder's **physical iPhone**; **Live feed, Chats, and Alerts all
+confirmed working on device** (home WiFi). Remaining: **Stage C (push)** and
+**Stage D (Tailscale/remote)** of the test plan — the builder does these next,
+following **`docs/PHASE_2E_SETUP.md`**. After that, the **Phase 2 review** (ROADMAP
+`[DECISION]` gate) decides readiness for Phase 3.
+
+### ⚠️ Event logging is temporarily OFF (important — don't be confused by quiet Alerts)
+`EVENT_LOGGING_ENABLED=0` in the Pi's `.env` (config flag defaults on in the repo).
+Continuous presence logged an event every few seconds, spamming Alerts + filling
+snapshot storage. Turned off as a stopgap; **Live feed & voice chat are unaffected**
+(separate paths). The proper fix — debounced/smart alerting — is the **first Phase 3
+task** (ROADMAP), after which the flag gets turned back on. To test push (Stage C)
+meanwhile, fire a manual event via `curl .../ingest/event/...` (bypasses the flag).
+
+### Deferred / TODO (small, non-blocking)
 - **Custom "Hey Leofric" wake word**: train via openWakeWord's free Colab, drop
-  `hey_leofric.onnx` into `data/models/` — code auto-detects it (one-file swap).
-  Until then the wake phrase is "Hey Jarvis".
-- Mac Mini reboot test for the brain LaunchAgent (only kill-tested so far).
-- Mac static IP (using hostname works around it for now).
+  `hey_leofric.onnx` into `data/models/` — code auto-detects it. Wake phrase is
+  "Hey Jarvis" until then.
+- Minor UX polish logged in ROADMAP 2D/2E notes (optimistic chat send, `#Preview`
+  env objects, a couple of concurrency nits) — all non-blocking, deferred.
+- Mac IP still DHCP (not reserved); the mDNS hostname works around it.
 
 ## Key decisions (full reasoning in docs/DECISIONS.md)
 We swapped several spec'd tools because they didn't fit the Pi / Python 3.13:
@@ -95,11 +132,22 @@ We swapped several spec'd tools because they didn't fit the Pi / Python 3.13:
   preference — don't hand him dashboard SQL). service_role key in the Pi's `.env`.
 
 ## Repo layout
-`main.py` (integrated loop) · `config.py` (settings, loads `.env`) · `log.py` ·
-`vision/` (camera, motion, person, identity) · `audio/` (microphone, wakeword,
-transcription) · `brain/` (client, conversation) · `storage/` (events → Supabase) ·
-`macmini/` (the Mac's Flask server) · `scripts/` (per-phase test_*.py, fetch_models.py) ·
+**Pi (Python):** `main.py` (integrated loop: VisionWorker + AudioWorker + FrameStreamer) ·
+`config.py` · `log.py` · `vision/` (camera, motion, person, identity, **streamer** →
+frames to the Mac) · `audio/` (microphone, wakeword, transcription) · `brain/` (client,
+conversation, **maclink** → events to the Mac) · `storage/` (events → Supabase) ·
 `deploy/leofric.service` · `data/` (models, known_faces.npz — gitignored) ·
-`docs/` (SPEC, ROADMAP, DECISIONS, MACDOCS, MAC_STATUS).
-Secrets live only in the Pi's `.env` (gitignored). Models fetched by
-`scripts/fetch_models.py`.
+`tests/` (Pi-side unit tests: maclink, conversation).
+**Mac brain (Python):** `macmini/` — `server.py` (Flask app-API + brain), `notify.py`
+(notification decision engine), `apns.py` (APNs sender), `test_*.py`, `requirements.txt`.
+**iOS app (Swift):** `ios/LeofricApp/` — SwiftUI, XcodeGen (`project.yml`), zero
+third-party deps. `LeofricApp/` (Views, Models, Networking/LeofricAPI, Store, Settings,
+Streaming/MJPEGStreamReader, Notifications, Support/ImageCache), `NotificationService/`
+(rich-push extension), `LeofricAppTests/`.
+**Docs:** `docs/` — PROJECT_SPEC, ROADMAP, DECISIONS, MACDOCS, MAC_STATUS,
+**PHASE_2E_SETUP** (builder's push/Tailscale runbook), BUILDER_PROFILE,
+`superpowers/plans/` (the executed Phase 2B–2E implementation plans, kept as record).
+**Secrets** (gitignored, never committed): the Pi's `.env` (Supabase, `EVENT_LOGGING_ENABLED`)
+and the Mac's `~/leofric-brain/.env` (Supabase + APNs creds once added). The Mac's
+`.p8` APNs key and `~/leofric-brain/{snapshots,devices.json}` are Mac-local only.
+Models fetched by `scripts/fetch_models.py`.
