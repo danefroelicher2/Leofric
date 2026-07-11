@@ -381,17 +381,41 @@ Plan: `docs/superpowers/plans/2026-07-10-phase-2d-alerts-chats.md`.
 **Goal:** Door opens in your house; phone buzzes in Arizona with a photo.
 
 - [x] **[YOU]** Apple Developer account — confirmed (builder has shipped apps)
-- [ ] **[CODE]** APNs on the Mac (token auth via .p8 key): device registration
+- [x] **[CODE]** APNs on the Mac (token auth via .p8 key): device registration
       endpoint (`POST /devices`), notification engine — identity-aware
       ("Dane at front door" vs "UNKNOWN PERSON"), per-node rules, ~60s cooldown,
       unknown persons always alert
-- [ ] **[CODE]** Rich notifications: snapshot photo attached (fetched over
+- [x] **[CODE]** Rich notifications: snapshot photo attached (fetched over
       Tailscale; degrades to text-only if unreachable)
 - [ ] **[YOU]** Install Tailscale on the Mac + iPhone (same account), set the app's
-      base URL to the Tailscale hostname
+      base URL to the Tailscale hostname — see `docs/PHASE_2E_SETUP.md`
 - [ ] **[YOU]** The Arizona test: leave home, trigger a person event, confirm
-      notification + live feed work remotely
+      notification + live feed work remotely — see `docs/PHASE_2E_SETUP.md`
 - [ ] **[DECISION]** Phase 2 review. Is the app usable daily? Move to Phase 3 only when yes.
+
+**2E CODE COMPLETE (2026-07-11), live delivery deferred to the builder's
+on-device pass.** All push code is written, unit-tested, and deployed:
+- Mac: `POST /devices` (file-backed token store), `macmini/notify.py` (identity-
+  aware decision engine — 10 tests), `macmini/apns.py` (HTTP/2 + ES256 JWT sender,
+  JWT signing verified against a throwaway key, payload/URL/headers verified vs the
+  APNs spec — 6 tests), and a best-effort push hook in `/ingest/event` (fires on
+  person/identity at a security node, never breaks ingest). Added `httpx[http2]` +
+  `PyJWT[crypto]` (the only deps APNs allows; documented). Verified live: device
+  registration works, bad tokens rejected, the hook safely no-ops while APNs is
+  unconfigured.
+- iOS: notification permission + remote registration + device-token POST
+  (`PushRegistrar`/`AppDelegate`), and a **Notification Service Extension** that
+  downloads the snapshot and attaches it (rich photo push). Both targets compile
+  and the extension embeds; 34 unit tests.
+- **What only the builder can do (real APNs delivery cannot be verified without
+  it):** generate the `.p8` APNs key + configure the Mac, build to a physical
+  iPhone and select the signing team, install Tailscale, and run the Arizona test.
+  **Full step-by-step in `docs/PHASE_2E_SETUP.md`.**
+- Review-caught fix: the Notification Service Extension's content handler is now
+  idempotent (a slow snapshot download past the ~30s budget could otherwise have
+  invoked it twice — undefined behavior over Tailscale/WAN).
+
+Plan: `docs/superpowers/plans/2026-07-11-phase-2e-push-notifications.md`.
 
 ---
 
