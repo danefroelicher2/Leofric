@@ -23,6 +23,10 @@ final class AppSettings: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.baseURLString = defaults.string(forKey: Keys.baseURLString) ?? Self.defaultBaseURLString
+        // Assigning in init does NOT fire didSet, so seed the shared App Group
+        // here too — otherwise the Notification Service Extension has no base URL
+        // until the user first edits the address, silently degrading photo pushes.
+        UserDefaults(suiteName: Self.appGroup)?.set(baseURLString, forKey: Keys.baseURLString)
     }
 
     var baseURL: URL? {

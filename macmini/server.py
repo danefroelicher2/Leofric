@@ -33,12 +33,19 @@ import time
 import requests
 from flask import Flask, Response, jsonify, request, send_file
 
-try:                       # deployed flat in ~/leofric-brain/
+try:                       # notify is pure Python — required, no third-party deps
     import notify
-    from apns import APNsClient
 except ImportError:        # running as the macmini package (tests)
     from macmini import notify
-    from macmini.apns import APNsClient
+
+APNsClient = None          # push is optional: if httpx/PyJWT aren't installed,
+try:                       # the brain still runs, push just no-ops.
+    try:
+        from apns import APNsClient          # deployed flat in ~/leofric-brain/
+    except ImportError:
+        from macmini.apns import APNsClient  # macmini package layout (tests)
+except Exception:          # apns module missing OR its deps (httpx/PyJWT) absent
+    APNsClient = None
 
 
 def _load_dotenv():
@@ -246,10 +253,11 @@ def _maybe_notify(event_type, metadata, node, snapshot_id):
         if not notify.should_send(event_type, role, alert["unknown"], node,
                                   time.time(), _last_notified):
             return
-        for token in _load_device_tokens():
-            _apns.send(token, alert["title"], alert["body"], snapshot_id, True)
-    except Exception:
-        pass
+        tokens = _load_device_tokens()
+        sent = sum(1 for t in tokens if _apns.send(t, alert["title"], alert["body"], snapshot_id, True))
+        app.logger.info("push sent: %r -> %d/%d device(s)", alert["body"], sent, len(tokens))
+    except Exception as e:
+        app.logger.warning("push failed: %s", e)
 
 
 @app.post("/ingest/event/<node>")
