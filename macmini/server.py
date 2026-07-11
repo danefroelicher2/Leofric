@@ -24,6 +24,7 @@ Run on the Mac Mini (see macmini/README.md):
 Binds 0.0.0.0:5000 so the Pi and iPhones on the LAN can reach it.
 """
 
+import json
 import os
 import re
 import threading
@@ -74,6 +75,13 @@ SNAPSHOT_KEEP = int(os.getenv("LEOFRIC_SNAPSHOT_KEEP", "2000"))
 SNAPSHOT_EVENT_TYPES = {"person", "identity"}  # motion is logged, never photographed
 _NODE_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
 _SNAPSHOT_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,80}")
+
+# Device tokens for push notifications, one JSON list on disk (Mac-local).
+DEVICES_FILE = os.getenv(
+    "LEOFRIC_DEVICES_FILE",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "devices.json"),
+)
+_DEVICE_TOKEN_RE = re.compile(r"[0-9a-fA-F]{1,200}")
 
 SYSTEM_PROMPT = (
     "You are Leofric, a local home intelligence system running on the builder's "
@@ -224,6 +232,35 @@ def snapshot(snapshot_id):
     if not os.path.exists(path):
         return jsonify(error="not found"), 404
     return send_file(path, mimetype="image/jpeg")
+
+
+def _load_device_tokens():
+    try:
+        with open(DEVICES_FILE) as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except (OSError, ValueError):
+        return []
+
+
+def _save_device_token(token):
+    tokens = _load_device_tokens()
+    if token not in tokens:
+        tokens.append(token)
+        os.makedirs(os.path.dirname(os.path.abspath(DEVICES_FILE)), exist_ok=True)
+        with open(DEVICES_FILE, "w") as f:
+            json.dump(tokens, f)
+
+
+@app.post("/devices")
+def register_device():
+    """iOS app registers its APNs device token here so the Mac can push to it."""
+    data = request.get_json(force=True, silent=True) or {}
+    token = (data.get("token") or "").strip()
+    if not token or not _DEVICE_TOKEN_RE.fullmatch(token):
+        return jsonify(error="missing or malformed 'token'"), 400
+    _save_device_token(token)
+    return jsonify(ok=True)
 
 
 @app.get("/nodes")

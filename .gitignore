@@ -18,6 +18,8 @@ logs/*
 !logs/.gitkeep
 # Event snapshots are written on the Mac only, never committed (privacy).
 macmini/snapshots/
+# Device tokens are written on the Mac only, never committed.
+macmini/devices.json
 
 # Hardware check outputs
 hwcheck_frame.jpg

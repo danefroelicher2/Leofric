@@ -326,6 +326,37 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(kwargs["json"], {"role": "user", "content": "hi"})
         self.assertEqual(kwargs["headers"]["apikey"], "key")
 
+    # --- device registration (Phase 2E) ---
+
+    def test_register_device_stores_token(self):
+        import tempfile, os as _os
+        with tempfile.TemporaryDirectory() as d:
+            path = _os.path.join(d, "devices.json")
+            with mock.patch.object(server, "DEVICES_FILE", path):
+                resp = self.client.post("/devices", json={"token": "a1b2c3d4"})
+                self.assertEqual(resp.status_code, 200)
+                self.assertTrue(resp.get_json()["ok"])
+                self.assertEqual(server._load_device_tokens(), ["a1b2c3d4"])
+
+    def test_register_device_dedupes(self):
+        import tempfile, os as _os
+        with tempfile.TemporaryDirectory() as d:
+            path = _os.path.join(d, "devices.json")
+            with mock.patch.object(server, "DEVICES_FILE", path):
+                self.client.post("/devices", json={"token": "aa"})
+                self.client.post("/devices", json={"token": "aa"})
+                self.assertEqual(server._load_device_tokens(), ["aa"])
+
+    def test_register_device_rejects_bad_token(self):
+        self.assertEqual(self.client.post("/devices", json={}).status_code, 400)
+        self.assertEqual(
+            self.client.post("/devices", json={"token": "not hex!"}).status_code, 400
+        )
+
+    def test_load_device_tokens_missing_file_is_empty(self):
+        with mock.patch.object(server, "DEVICES_FILE", "/nonexistent/devices.json"):
+            self.assertEqual(server._load_device_tokens(), [])
+
 
 if __name__ == "__main__":
     unittest.main()
