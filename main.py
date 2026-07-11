@@ -57,7 +57,15 @@ class VisionWorker(threading.Thread):
 
     def _log_event(self, event_type, metadata):
         """Fast path to the Mac (returns snapshot_id if it photographed the
-        moment), then the durable path to Supabase with that id attached."""
+        moment), then the durable path to Supabase with that id attached.
+
+        Gated by EVENT_LOGGING_ENABLED: while off, detection + the live feed
+        still run, but no events are logged and no snapshots are captured, so
+        the app's Alerts tab stays quiet. Temporarily off — continuous presence
+        logs an event every few seconds, spamming Alerts and filling snapshot
+        storage; re-enable once smart debounced alerting exists (ROADMAP Ph3)."""
+        if not config.EVENT_LOGGING_ENABLED:
+            return
         snapshot_id = self.maclink.send_event(event_type, metadata)
         if snapshot_id:
             metadata = dict(metadata, snapshot_id=snapshot_id)

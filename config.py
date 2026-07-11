@@ -115,6 +115,15 @@ STREAM_JPEG_QUALITY = int(os.getenv("STREAM_JPEG_QUALITY", "70"))  # 0-100
 # notifications on); an "assistant" node is mic-first (no notifications).
 NODE_ROLE = os.getenv("NODE_ROLE", "security")
 
+# --- Event logging (temporary kill switch, 2026-07-11) ---
+# When off, the vision pipeline still detects and streams the live feed, but
+# does NOT log motion/person/identity events to the Mac or Supabase — so no
+# snapshots are captured and the app's Alerts tab stays quiet. Turned off on
+# the deployed Pi (via .env) because continuous presence logs an event every
+# few seconds, spamming Alerts and filling snapshot storage with a clip every
+# time. Re-enable once smart debounced alerting exists — see ROADMAP Phase 3.
+EVENT_LOGGING_ENABLED = os.getenv("EVENT_LOGGING_ENABLED", "1").lower() not in ("0", "false", "no")
+
 # --- Conversation sessions ---
 # A pause longer than this between wake-word exchanges starts a new session
 # (= a new chat thread in the app) with fresh short-term context.
