@@ -340,12 +340,40 @@ Plan: `docs/superpowers/plans/2026-07-10-phase-2c-ios-app-core.md`.
 ### 2D — Alerts + Chats
 **Goal:** The security timeline and the conversation surface.
 
-- [ ] **[CODE]** Alerts tab — event timeline with per-event snapshot thumbnails,
-      filter by node/type; tap → full photo + "watch live"
-- [ ] **[CODE]** Chats tab — thread list (voice sessions auto-appear; compose for
+- [x] **[CODE]** Alerts tab — event timeline with per-event snapshot thumbnails,
+      filter by type; tap → full photo + "watch live"
+- [x] **[CODE]** Chats tab — thread list (voice sessions auto-appear; compose for
       typed chats), iMessage-style thread view, ~2s polling while open
 - [ ] **[YOU]** Test each screen on device; say "hey Jarvis…" and watch the
       thread appear in the app
+
+**2D COMPLETE (2026-07-11).** Verified live against the real running Mac + Pi:
+- **Alerts tab** renders the real security timeline — identity events labeled
+  "Dane" with actual thumbnail photos pulled through the Mac's `/snapshot/<id>`,
+  motion events correctly showing a fallback icon (no photo, by design), relative
+  timestamps, newest-first, with a working type filter.
+- **Chats tab** shows real threads — the "hey Jarvis" **voice sessions surface
+  automatically** (grouped from Supabase by `session_id`, labeled "Voice session"),
+  alongside typed chats; a fresh `/app/chat` message appeared as a "Typed chat"
+  thread within seconds, proving the full write→read→group→render loop.
+- New Mac endpoint `POST /app/chat` (mints/reuses `session_id`, persists both
+  turns with `node_id="app"`, best-effort). New iOS: `LeofricStore` (shared API),
+  `LeofricEvent`/`ConversationMessage`/`ConversationThread` models, `ImageCache`
+  (NSCache thumbnails), Alerts + Chats tabs. 32 iOS unit tests + 8 new Mac tests.
+- **Scope note:** Alerts filters by type only (not node) — one node exists today;
+  `fetchEvents(nodeID:)` is ready for when Phase 4 adds a second node.
+- Bugs caught in review and fixed before merge: `POST /app/chat` best-effort
+  persistence; `AlertDetailView` infinite-spinner for no-photo events; and a
+  Critical `ChatThreadView` message-ordering bug (the Mac returns conversations
+  newest-first; the thread view was rendering bubbles reversed AND sending
+  reversed history to the brain) plus a stale-poll overwrite race — both fixed.
+
+Deferred UX polish (non-blocking, noted for a later pass): optimistic send +
+surfaced error on send failure in `ChatThreadView`; the `#Preview` blocks in
+`LiveFeedView`/`NodesView` need a `LeofricStore` env object to render in Xcode's
+canvas (no runtime impact); a unit test for `sortedOldestFirst`/the poll guard.
+
+Plan: `docs/superpowers/plans/2026-07-10-phase-2d-alerts-chats.md`.
 
 ---
 
