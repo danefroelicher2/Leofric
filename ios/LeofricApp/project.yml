@@ -20,6 +20,9 @@ targets:
         UILaunchScreen: {}
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: >-
+          Leofric connects to your Mac Mini on the local network to show
+          the live camera feed and node status.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.danefroelicher.Leofric

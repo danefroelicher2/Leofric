@@ -3,6 +3,15 @@ import Foundation
 /// Reads a multipart/x-mixed-replace MJPEG stream (as served by the Mac's
 /// GET /feed) and publishes each decoded JPEG frame. AVPlayer cannot play
 /// MJPEG, so this is Leofric's one piece of custom networking code.
+///
+/// iOS's URLSession has built-in handling for `multipart/x-mixed-replace`
+/// responses: it strips the boundary markers and part headers (e.g.
+/// `--leofricframe\r\nContent-Type: ...\r\nContent-Length: ...\r\n\r\n`)
+/// before `didReceive data:` ever sees them, delivering raw JPEG bytes only
+/// — confirmed by hex-dumping the actual bytes received against the live
+/// Mac stream (the first bytes are the JPEG SOI/JFIF marker `ff d8 ff e0`,
+/// never the boundary text). So frames are detected via JPEG's own framing
+/// instead: SOI (0xFFD8) starts a frame, EOI (0xFFD9) ends it.
 @MainActor
 final class MJPEGStreamReader: NSObject, ObservableObject, URLSessionDataDelegate {
     @Published private(set) var currentFrame: Data?
@@ -54,54 +63,35 @@ final class MJPEGStreamReader: NSObject, ObservableObject, URLSessionDataDelegat
         Task { @MainActor in self.isConnected = false }
     }
 
-    /// Pulls one JPEG frame out of `buffer` if a complete multipart part
-    /// (boundary + headers + Content-Length bytes) is present, consuming
-    /// those bytes. Returns nil if the buffer doesn't yet hold a full frame.
-    nonisolated static func extractFrame(from buffer: inout Data) -> Data? {
-        let boundaryMarker = Data("--leofricframe\r\n".utf8)
-        guard let boundaryRange = buffer.range(of: boundaryMarker) else { return nil }
-        let headerStart = boundaryRange.upperBound
-        let headerTerminator = Data("\r\n\r\n".utf8)
-        guard let headerEndRange = buffer.range(of: headerTerminator, in: headerStart..<buffer.endIndex) else {
-            return nil
-        }
-        let headerData = buffer[headerStart..<headerEndRange.lowerBound]
-        guard let headerString = String(data: headerData, encoding: .utf8),
-              let contentLength = contentLength(fromHeaders: headerString) else {
-            // Malformed headers: drop through this boundary so we don't get
-            // stuck retrying the same bad bytes forever.
-            buffer.removeSubrange(buffer.startIndex..<headerEndRange.upperBound)
-            return nil
-        }
-        let jpegStart = headerEndRange.upperBound
-        guard let jpegEnd = buffer.index(jpegStart, offsetBy: contentLength, limitedBy: buffer.endIndex) else {
-            return nil  // full frame hasn't arrived yet
-        }
-        // The frame isn't complete until its trailing CRLF has also arrived —
-        // without this check, a buffer that ends exactly at jpegEnd (CRLF not
-        // yet received) would be mistaken for a complete frame.
-        guard buffer.distance(from: jpegEnd, to: buffer.endIndex) >= 2 else {
-            return nil  // trailing CRLF hasn't fully arrived yet
-        }
-        let jpegData = Data(buffer[jpegStart..<jpegEnd])
-        var consumeEnd = jpegEnd
-        let trailing = Data("\r\n".utf8)
-        if buffer.distance(from: jpegEnd, to: buffer.endIndex) >= 2,
-           buffer[jpegEnd..<buffer.index(jpegEnd, offsetBy: 2)] == trailing {
-            consumeEnd = buffer.index(jpegEnd, offsetBy: 2)
-        }
-        buffer.removeSubrange(buffer.startIndex..<consumeEnd)
-        return jpegData
-    }
+    private nonisolated static let soi = Data([0xFF, 0xD8])
+    private nonisolated static let eoi = Data([0xFF, 0xD9])
 
-    private nonisolated static func contentLength(fromHeaders headers: String) -> Int? {
-        for line in headers.split(separator: "\r\n") {
-            let parts = line.split(separator: ":", maxSplits: 1)
-            guard parts.count == 2,
-                  parts[0].trimmingCharacters(in: .whitespaces).caseInsensitiveCompare("Content-Length") == .orderedSame
-            else { continue }
-            return Int(parts[1].trimmingCharacters(in: .whitespaces))
+    /// Pulls one complete JPEG frame (SOI...EOI, inclusive) out of `buffer`,
+    /// consuming those bytes and dropping anything before the first SOI.
+    /// Returns nil if a full frame isn't present yet.
+    nonisolated static func extractFrame(from buffer: inout Data) -> Data? {
+        guard let soiRange = buffer.range(of: soi) else {
+            // No frame start yet — drop any trailing single 0xFF byte in case
+            // it's the first half of an SOI split across two network reads,
+            // but clear everything else so a garbage buffer can't grow forever.
+            if buffer.last == 0xFF {
+                buffer.removeSubrange(buffer.startIndex..<buffer.index(before: buffer.endIndex))
+            } else {
+                buffer.removeAll()
+            }
+            return nil
         }
-        return nil
+        if soiRange.lowerBound > buffer.startIndex {
+            buffer.removeSubrange(buffer.startIndex..<soiRange.lowerBound)
+        }
+        let searchStart = buffer.index(buffer.startIndex, offsetBy: 2)
+        guard searchStart <= buffer.endIndex,
+              let eoiRange = buffer.range(of: eoi, in: searchStart..<buffer.endIndex) else {
+            return nil  // frame not fully arrived yet
+        }
+        let frameEnd = eoiRange.upperBound
+        let jpegData = Data(buffer[buffer.startIndex..<frameEnd])
+        buffer.removeSubrange(buffer.startIndex..<frameEnd)
+        return jpegData
     }
 }

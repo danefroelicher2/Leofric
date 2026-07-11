@@ -25,6 +25,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Leofric connects to your Mac Mini on the local network to show the live camera feed and node status.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>
