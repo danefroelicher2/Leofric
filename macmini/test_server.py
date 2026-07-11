@@ -357,6 +357,51 @@ class ApiTest(unittest.TestCase):
         with mock.patch.object(server, "DEVICES_FILE", "/nonexistent/devices.json"):
             self.assertEqual(server._load_device_tokens(), [])
 
+    # --- push hook in ingest (Phase 2E) ---
+
+    def test_ingest_event_triggers_push_for_identity(self):
+        self._post_frame()  # so a snapshot is captured
+        sent = []
+        fake_apns = mock.Mock()
+        fake_apns.send.side_effect = lambda *a, **k: sent.append(a) or True
+        with mock.patch.object(server, "_apns", fake_apns), \
+             mock.patch.object(server, "_load_device_tokens", return_value=["tok1"]), \
+             mock.patch.dict(server._last_notified, clear=True):
+            self.client.post(
+                "/ingest/event/leofric",
+                json={"event_type": "identity", "metadata": {"name": "dane"}},
+            )
+        self.assertEqual(len(sent), 1)  # one device notified
+
+    def test_ingest_event_motion_does_not_push(self):
+        fake_apns = mock.Mock()
+        with mock.patch.object(server, "_apns", fake_apns), \
+             mock.patch.object(server, "_load_device_tokens", return_value=["tok1"]):
+            self.client.post("/ingest/event/leofric", json={"event_type": "motion"})
+        fake_apns.send.assert_not_called()
+
+    def test_ingest_event_no_push_when_apns_unconfigured(self):
+        with mock.patch.object(server, "_apns", None), \
+             mock.patch.object(server, "_load_device_tokens", return_value=["tok1"]):
+            resp = self.client.post(
+                "/ingest/event/leofric",
+                json={"event_type": "identity", "metadata": {"name": "dane"}},
+            )
+        self.assertEqual(resp.status_code, 200)  # ingest still succeeds
+
+    def test_ingest_event_push_failure_does_not_break_ingest(self):
+        fake_apns = mock.Mock()
+        fake_apns.send.side_effect = RuntimeError("boom")
+        with mock.patch.object(server, "_apns", fake_apns), \
+             mock.patch.object(server, "_load_device_tokens", return_value=["tok1"]), \
+             mock.patch.dict(server._last_notified, clear=True):
+            resp = self.client.post(
+                "/ingest/event/leofric",
+                json={"event_type": "identity", "metadata": {"name": "unknown"}},
+            )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.get_json()["ok"])
+
 
 if __name__ == "__main__":
     unittest.main()

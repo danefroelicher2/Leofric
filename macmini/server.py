@@ -33,6 +33,13 @@ import time
 import requests
 from flask import Flask, Response, jsonify, request, send_file
 
+try:                       # deployed flat in ~/leofric-brain/
+    import notify
+    from apns import APNsClient
+except ImportError:        # running as the macmini package (tests)
+    from macmini import notify
+    from macmini.apns import APNsClient
+
 
 def _load_dotenv():
     """Load KEY=VALUE lines from .env beside this script into os.environ.
@@ -82,6 +89,29 @@ DEVICES_FILE = os.getenv(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "devices.json"),
 )
 _DEVICE_TOKEN_RE = re.compile(r"[0-9a-fA-F]{1,200}")
+
+# APNs (push notifications): unconfigured by default — _make_apns() returns
+# None and _maybe_notify() becomes a no-op until a real .p8 key is deployed.
+APNS_KEY_PATH = os.getenv("APNS_KEY_PATH", "")
+APNS_KEY_ID = os.getenv("APNS_KEY_ID", "")
+APNS_TEAM_ID = os.getenv("APNS_TEAM_ID", "")
+APNS_BUNDLE_ID = os.getenv("APNS_BUNDLE_ID", "com.danefroelicher.Leofric")
+APNS_USE_SANDBOX = os.getenv("APNS_USE_SANDBOX", "1").lower() not in ("0", "false", "no")
+
+_last_notified = {}  # node -> epoch of last push, for cooldown
+
+
+def _make_apns():
+    if not (APNS_KEY_PATH and APNS_KEY_ID and APNS_TEAM_ID and os.path.exists(APNS_KEY_PATH)):
+        return None
+    try:
+        return APNsClient(APNS_KEY_PATH, APNS_KEY_ID, APNS_TEAM_ID,
+                          APNS_BUNDLE_ID, use_sandbox=APNS_USE_SANDBOX)
+    except Exception:
+        return None
+
+
+_apns = _make_apns()
 
 SYSTEM_PROMPT = (
     "You are Leofric, a local home intelligence system running on the builder's "
@@ -203,6 +233,25 @@ def _prune_snapshots():
             pass
 
 
+def _maybe_notify(event_type, metadata, node, snapshot_id):
+    """Best-effort push for a person/identity event at a security node. Never
+    raises — a notification problem must not disrupt event ingest."""
+    if _apns is None:
+        return
+    try:
+        alert = notify.build_alert(event_type, metadata or {}, node)
+        if alert is None:
+            return
+        role = _frames.get(node, {}).get("role")
+        if not notify.should_send(event_type, role, alert["unknown"], node,
+                                  time.time(), _last_notified):
+            return
+        for token in _load_device_tokens():
+            _apns.send(token, alert["title"], alert["body"], snapshot_id, True)
+    except Exception:
+        pass
+
+
 @app.post("/ingest/event/<node>")
 def ingest_event(node):
     """Pi pushes a detection event; a fresh frame becomes its snapshot photo."""
@@ -221,6 +270,7 @@ def ingest_event(node):
             with open(os.path.join(SNAPSHOT_DIR, snapshot_id + ".jpg"), "wb") as f:
                 f.write(jpeg)
             _prune_snapshots()
+    _maybe_notify(event_type, data.get("metadata") or {}, node, snapshot_id)
     return jsonify(ok=True, snapshot_id=snapshot_id)
 
 
