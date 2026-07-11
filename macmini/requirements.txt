@@ -1,3 +1,8 @@
 # Leofric brain server (Mac Mini) dependencies.
 flask
 requests
+
+# Push notifications (Phase 2E). APNs mandates HTTP/2 (requests can't) and
+# ES256 JWT auth — these two packages are the minimum to do that.
+httpx[http2]
+PyJWT[crypto]
