@@ -417,12 +417,31 @@ on-device pass.** All push code is written, unit-tested, and deployed:
 
 Plan: `docs/superpowers/plans/2026-07-11-phase-2e-push-notifications.md`.
 
+### On-device testing status (2026-07-11)
+App built to the builder's physical iPhone and confirmed working on home WiFi:
+**Live feed, Chats, and Alerts all verified on device.** Push notifications +
+Tailscale (Stages C–D of the test plan) not yet run.
+
+**⚠️ Event logging temporarily DISABLED (`EVENT_LOGGING_ENABLED=0` in the Pi's
+`.env`).** On-device testing surfaced that continuous presence in frame logs an
+identity/person event every few seconds, each capturing a snapshot — flooding
+the Alerts tab and filling snapshot storage (127 MB of test clips accrued in one
+session, since cleared). Turned off as a stopgap so it stops spamming; the live
+feed and voice chat are unaffected (separate code paths). **This is temporary,
+pending the smart-alerting work below.** To test push (Stage C) meanwhile,
+trigger a manual event via `curl .../ingest/event/...` (see PHASE_2E_SETUP.md) —
+that path bypasses the Pi flag — or set `EVENT_LOGGING_ENABLED=1` and restart.
+
 ---
 
 ## Phase 3 — Vision Intelligence Depth
 **Goal:** System makes intelligent distinctions. Unknown person alert with image.
 Identity expands beyond just the builder.
 
+- [ ] **[CODE]** **Smart/debounced alerting (do this FIRST — it's why event
+      logging is currently off).** One continuous presence should produce ONE
+      alert, not one every few seconds; snapshot only on a new arrival or an
+      unknown person, not on every frame-tick. Then re-enable `EVENT_LOGGING_ENABLED`.
 - [ ] **[CODE]** Unknown person triggers push notification with still image attached
 - [ ] **[CODE]** Identity enrollment expanded — add additional known people
 - [ ] **[CODE]** Short clip capture on unknown person detection (10-second buffer, save on trigger)
