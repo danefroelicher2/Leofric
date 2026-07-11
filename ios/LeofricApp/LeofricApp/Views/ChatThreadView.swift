@@ -46,7 +46,7 @@ struct ChatThreadView: View {
 
     private func loadInitial() async {
         guard let sessionID else { return }  // new compose flow — nothing to load yet
-        messages = (try? await store.api.fetchConversations(sessionID: sessionID)) ?? []
+        messages = sortedOldestFirst((try? await store.api.fetchConversations(sessionID: sessionID)) ?? [])
     }
 
     private func startPolling() {
@@ -63,8 +63,11 @@ struct ChatThreadView: View {
     private func refreshIfNeeded() async {
         guard let sessionID else { return }
         guard let fresh = try? await store.api.fetchConversations(sessionID: sessionID) else { return }
-        if fresh.count != messages.count {
-            messages = fresh
+        // Conversations are append-only, so only apply a poll result that has
+        // strictly MORE messages — this prevents a slow/stale poll (older server
+        // state, fewer rows) from erasing a message the user just sent.
+        if fresh.count > messages.count {
+            messages = sortedOldestFirst(fresh)
         }
     }
 
@@ -81,7 +84,13 @@ struct ChatThreadView: View {
             return
         }
         sessionID = result.sessionID
-        messages = (try? await store.api.fetchConversations(sessionID: result.sessionID)) ?? messages
+        messages = sortedOldestFirst((try? await store.api.fetchConversations(sessionID: result.sessionID)) ?? messages)
+    }
+
+    /// The Mac returns conversation rows newest-first; the UI, scroll-to-bottom,
+    /// and the history sent to the brain all need them oldest-first.
+    private func sortedOldestFirst(_ rows: [ConversationMessage]) -> [ConversationMessage] {
+        rows.sorted { ($0.createdAtDate ?? .distantPast) < ($1.createdAtDate ?? .distantPast) }
     }
 }
 
