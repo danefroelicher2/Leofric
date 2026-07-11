@@ -216,4 +216,22 @@ final class LeofricAPITests: XCTestCase {
         XCTAssertEqual(url.path, "/snapshot/leofric-123")
         XCTAssertNil(url.query)
     }
+
+    func testRegisterDevicePostsToken() async throws {
+        var capturedBody: Data?
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/devices")
+            capturedBody = request.httpBodyStreamData() ?? request.httpBody
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data("{\"ok\":true}".utf8))
+        }
+        try await makeAPI().registerDevice(token: "abc123")
+        let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(capturedBody)) as? [String: Any]
+        XCTAssertEqual(json?["token"] as? String, "abc123")
+    }
+
+    func testHexEncodesDeviceToken() {
+        let raw = Data([0xAB, 0x01, 0xFF])
+        XCTAssertEqual(PushRegistrar.hexString(from: raw), "ab01ff")
+    }
 }

@@ -87,4 +87,14 @@ struct LeofricAPI {
     func snapshotURL(id: String) -> URL {
         baseURL.appendingPathComponent("snapshot").appendingPathComponent(id)
     }
+
+    func registerDevice(token: String) async throws {
+        var request = URLRequest(url: baseURL.appendingPathComponent("devices"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["token": token])
+        let (_, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw LeofricAPIError.invalidResponse }
+        guard http.statusCode == 200 else { throw LeofricAPIError.httpStatus(http.statusCode) }
+    }
 }

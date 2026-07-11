@@ -27,6 +27,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.danefroelicher.Leofric
         TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: LeofricApp/LeofricApp.entitlements
+      properties:
+        aps-environment: development
+        com.apple.security.application-groups:
+          - group.com.danefroelicher.Leofric
     scheme:
       testTargets:
         - LeofricAppTests
