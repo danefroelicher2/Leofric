@@ -296,13 +296,44 @@ the vision loop. Plan: `docs/superpowers/plans/2026-07-10-phase-2b-security-back
 ### 2C — iOS App Core
 **Goal:** A security camera in hand: app opens → live video in under 2 seconds.
 
-- [ ] **[CODE]** Propose Swift project structure for approval; scaffold Xcode project
+- [x] **[CODE]** Propose Swift project structure for approval; scaffold Xcode project
       (SwiftUI, tab navigation, `LeofricAPI` network layer, Codable models
       matching the Mac's exact JSON)
-- [ ] **[CODE]** Live tab — custom MJPEG stream reader (~100 lines; AVPlayer
+- [x] **[CODE]** Live tab — custom MJPEG stream reader (~100 lines; AVPlayer
       can't play MJPEG), full-screen feed, node switcher
-- [ ] **[CODE]** Nodes tab — health board + settings (Mac base URL, preferences)
+- [x] **[CODE]** Nodes tab — health board + settings (Mac base URL, preferences)
 - [ ] **[YOU]** Build to your iPhone from Xcode on the Mac Mini, verify feed on device
+
+**2C COMPLETE (2026-07-10).** SwiftUI app scaffolded via XcodeGen at
+`ios/LeofricApp/`, zero third-party dependencies, builds/tests headlessly
+against the iOS Simulator (`xcodebuild`). **Live tab verified showing a real,
+current camera frame** pulled through the Mac's `/feed` from the Pi; Nodes tab
+verified showing the `leofric` node online, role `security`, streaming.
+14 unit tests across `LeofricAPITests`, `MJPEGStreamReaderTests`,
+`AppSettingsTests`, `SmokeTests`.
+
+**Critical bug found and fixed during live verification, not caught by unit
+tests:** iOS's `URLSession` silently strips multipart boundary/header text
+from `multipart/x-mixed-replace` responses before delegate callbacks ever see
+it — confirmed by hex-dumping real bytes received (`ff d8 ff e0...`, JPEG's own
+SOI/JFIF marker, never the `--leofricframe...` boundary text the original
+parser was designed around). The Live tab was a permanent loading spinner
+until this was found. Fixed by detecting frames via JPEG's own SOI/EOI markers
+instead of multipart framing — see commit `d43145c` for the full root-cause
+writeup. **Lesson for this codebase:** this class of bug (implementation
+correct against synthetic unit-test fixtures, wrong against real platform
+behavior) is exactly why live-device verification against the real Mac is a
+required step before any networking task is called done, not an optional
+nice-to-have — plan accordingly for 2D/2E.
+
+Known accepted residual risk (documented in `MJPEGStreamReader.swift`, not a
+blocker): SOI/EOI marker scanning doesn't walk JPEG marker-segment lengths, so
+a `0xFF 0xD9` byte pair occurring inside table data (DHT/DQT) could in theory
+truncate a frame early. Self-healing — the parser resyncs on the very next
+real SOI — and low-probability given the Pi's standard `cv2.imencode` output.
+Track as a fast-follow if ever observed in practice, not before.
+
+Plan: `docs/superpowers/plans/2026-07-10-phase-2c-ios-app-core.md`.
 
 ---
 
