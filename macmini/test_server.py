@@ -234,6 +234,98 @@ class ApiTest(unittest.TestCase):
             nodes = self.client.get("/nodes").get_json()["nodes"]
         self.assertIsNone(nodes[0]["role"])
 
+    # --- app-originated chat (Phase 2D) ---
+
+    def _mock_ollama_and_supabase(self, reply="Hello there"):
+        """Mocks both requests.post (Ollama /api/chat) and _supabase_post."""
+        ollama_resp = mock.Mock()
+        ollama_resp.json.return_value = {"message": {"content": reply}}
+        ollama_resp.raise_for_status.return_value = None
+        return mock.patch.object(server.requests, "post", return_value=ollama_resp)
+
+    def test_app_chat_mints_session_id_when_absent(self):
+        with mock.patch.object(server, "SUPABASE_URL", "http://sb"), \
+             mock.patch.object(server, "SUPABASE_KEY", "key"), \
+             self._mock_ollama_and_supabase() as post, \
+             mock.patch.object(server, "_supabase_post") as supa_post:
+            resp = self.client.post("/app/chat", json={"message": "hi"})
+        self.assertEqual(resp.status_code, 200)
+        body = resp.get_json()
+        self.assertEqual(body["response"], "Hello there")
+        self.assertTrue(body["session_id"].startswith("app-"))
+        self.assertEqual(supa_post.call_count, 2)
+        user_row = supa_post.call_args_list[0].args[1]
+        leofric_row = supa_post.call_args_list[1].args[1]
+        self.assertEqual(user_row["role"], "user")
+        self.assertEqual(user_row["content"], "hi")
+        self.assertEqual(user_row["node_id"], "app")
+        self.assertEqual(user_row["session_id"], body["session_id"])
+        self.assertEqual(leofric_row["role"], "leofric")
+        self.assertEqual(leofric_row["content"], "Hello there")
+
+    def test_app_chat_reuses_provided_session_id(self):
+        with mock.patch.object(server, "SUPABASE_URL", "http://sb"), \
+             mock.patch.object(server, "SUPABASE_KEY", "key"), \
+             self._mock_ollama_and_supabase(), \
+             mock.patch.object(server, "_supabase_post") as supa_post:
+            resp = self.client.post(
+                "/app/chat", json={"message": "hi", "session_id": "app-123"}
+            )
+        self.assertEqual(resp.get_json()["session_id"], "app-123")
+        self.assertEqual(supa_post.call_args_list[0].args[1]["session_id"], "app-123")
+
+    def test_app_chat_requires_message(self):
+        resp = self.client.post("/app/chat", json={})
+        self.assertEqual(resp.status_code, 400)
+
+    def test_app_chat_forwards_history_to_ollama(self):
+        history = [{"role": "user", "content": "earlier"}, {"role": "assistant", "content": "reply"}]
+        with mock.patch.object(server, "SUPABASE_URL", "http://sb"), \
+             mock.patch.object(server, "SUPABASE_KEY", "key"), \
+             self._mock_ollama_and_supabase() as post, \
+             mock.patch.object(server, "_supabase_post"):
+            self.client.post("/app/chat", json={"message": "hi", "history": history})
+        sent_messages = post.call_args.kwargs["json"]["messages"]
+        self.assertEqual(sent_messages[0]["content"], server.SYSTEM_PROMPT)
+        self.assertIn({"role": "user", "content": "earlier"}, sent_messages)
+        self.assertEqual(sent_messages[-1], {"role": "user", "content": "hi"})
+
+    def test_app_chat_still_returns_reply_if_persistence_fails(self):
+        with mock.patch.object(server, "SUPABASE_URL", "http://sb"), \
+             mock.patch.object(server, "SUPABASE_KEY", "key"), \
+             self._mock_ollama_and_supabase(), \
+             mock.patch.object(server, "_supabase_post", side_effect=OSError("down")):
+            resp = self.client.post("/app/chat", json={"message": "hi"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.get_json()["response"], "Hello there")
+
+    def test_app_chat_works_without_supabase_configured(self):
+        with mock.patch.object(server, "SUPABASE_URL", ""), \
+             mock.patch.object(server, "SUPABASE_KEY", ""), \
+             self._mock_ollama_and_supabase():
+            resp = self.client.post("/app/chat", json={"message": "hi"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.get_json()["response"], "Hello there")
+
+    def test_app_chat_ollama_failure_is_502(self):
+        with mock.patch.object(server, "SUPABASE_URL", "http://sb"), \
+             mock.patch.object(server, "SUPABASE_KEY", "key"), \
+             mock.patch.object(server.requests, "post", side_effect=OSError("down")):
+            resp = self.client.post("/app/chat", json={"message": "hi"})
+        self.assertEqual(resp.status_code, 502)
+
+    def test_supabase_post_sends_row(self):
+        resp = mock.Mock()
+        resp.raise_for_status.return_value = None
+        with mock.patch.object(server, "SUPABASE_URL", "http://sb"), \
+             mock.patch.object(server, "SUPABASE_KEY", "key"), \
+             mock.patch.object(server.requests, "post", return_value=resp) as post:
+            server._supabase_post("conversations", {"role": "user", "content": "hi"})
+        args, kwargs = post.call_args
+        self.assertEqual(args[0], "http://sb/rest/v1/conversations")
+        self.assertEqual(kwargs["json"], {"role": "user", "content": "hi"})
+        self.assertEqual(kwargs["headers"]["apikey"], "key")
+
 
 if __name__ == "__main__":
     unittest.main()

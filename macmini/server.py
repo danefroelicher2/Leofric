@@ -272,6 +272,22 @@ def _supabase_get(table, params):
     return resp.json()
 
 
+def _supabase_post(table, row):
+    """Insert one row via PostgREST. Raises on any failure; callers decide
+    whether that should fail the request or just be logged and swallowed."""
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        json=row,
+        headers={
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+        },
+        timeout=10,
+    )
+    resp.raise_for_status()
+
+
 def _supabase_last_event_times():
     """{node_id: last event epoch} from recent events; empty dict on failure."""
     if not (SUPABASE_URL and SUPABASE_KEY):
@@ -333,6 +349,51 @@ def events():
 def conversations():
     """Recent conversation lines, newest first. Filters: ?limit=, ?session_id=, ?node_id=."""
     return _history_endpoint("conversations", ("session_id", "node_id"))
+
+
+APP_CHAT_NODE_ID = "app"  # distinguishes typed chats from voice sessions (node_id="leofric")
+
+
+@app.post("/app/chat")
+def app_chat():
+    """Typed chat from the iOS app: mints/reuses a session_id, calls the
+    brain, and persists both turns — unlike /chat, which the Pi calls and
+    persists client-side itself. Persistence is best-effort: a Supabase
+    hiccup must never cost the user their answer."""
+    data = request.get_json(force=True, silent=True) or {}
+    message = (data.get("message") or "").strip()
+    if not message:
+        return jsonify(error="missing 'message'"), 400
+    history = data.get("history") or []
+    session_id = data.get("session_id") or f"{APP_CHAT_NODE_ID}-{int(time.time() * 1000)}"
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages.extend(history)
+    messages.append({"role": "user", "content": message})
+
+    try:
+        resp = requests.post(
+            OLLAMA_URL,
+            json={"model": MODEL, "messages": messages, "stream": False, "keep_alive": -1},
+            timeout=120,
+        )
+        resp.raise_for_status()
+        reply = resp.json().get("message", {}).get("content", "").strip()
+    except Exception as e:
+        return jsonify(error=f"ollama request failed: {e}"), 502
+
+    if SUPABASE_URL and SUPABASE_KEY:
+        for role, content in (("user", message), ("leofric", reply)):
+            try:
+                _supabase_post(
+                    "conversations",
+                    {"node_id": APP_CHAT_NODE_ID, "session_id": session_id,
+                     "role": role, "content": content},
+                )
+            except Exception:
+                pass  # best-effort — the user still gets their reply below
+
+    return jsonify(response=reply, session_id=session_id)
 
 
 if __name__ == "__main__":
