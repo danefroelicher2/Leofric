@@ -4,6 +4,7 @@ import SwiftUI
 /// needs: the Mac's address.
 struct NodesView: View {
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var store: LeofricStore
     @State private var nodes: [NodeStatus] = []
     @State private var brainHealthy: Bool?
 
@@ -60,11 +61,11 @@ struct NodesView: View {
     }
 
     private func refresh() async {
-        guard let baseURL = settings.baseURL else {
+        guard settings.baseURL != nil else {
             brainHealthy = false
             return
         }
-        let api = LeofricAPI(baseURL: baseURL)
+        let api = store.api
         brainHealthy = try? await api.health()
         nodes = (try? await api.fetchNodes()) ?? nodes
     }

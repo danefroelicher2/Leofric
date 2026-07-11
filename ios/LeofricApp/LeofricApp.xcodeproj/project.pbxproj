@@ -11,6 +11,7 @@
 		0663FD07DB20DBD8B9483431 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBD8D64C108A44C6CA9E05B /* RootTabView.swift */; };
 		1F2F03F115870B450642178A /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD2E658DA9B61B2A8AA2D3A /* SmokeTests.swift */; };
 		25B7CF72D6C379B94B8B775F /* NodesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4669A84F6FC6DCE6E82FB77 /* NodesView.swift */; };
+		26A9BAD6E20470C1FD4D3FC6 /* LeofricStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B670A56AC6A88B38B21BCBE4 /* LeofricStore.swift */; };
 		2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1A61A06E15DCA1B8D39F7F /* LeofricAPI.swift */; };
 		2EB6A82443A24BA8FD578E90 /* NodeStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */; };
 		8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B80B7DF756E4A07B0F7649 /* LeofricApp.swift */; };
@@ -45,6 +46,7 @@
 		8C307207B882CBB2955008D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A11788988102C5F223F31EB6 /* MJPEGStreamReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MJPEGStreamReaderTests.swift; sourceTree = "<group>"; };
 		B4669A84F6FC6DCE6E82FB77 /* NodesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodesView.swift; sourceTree = "<group>"; };
+		B670A56AC6A88B38B21BCBE4 /* LeofricStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricStore.swift; sourceTree = "<group>"; };
 		DFBD8D64C108A44C6CA9E05B /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		EE68ECFAABF4588B3DB4D95B /* LeofricAPITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeofricAPITests.swift; sourceTree = "<group>"; };
 		F9C0BE8774C27A641AD7CC12 /* NodeStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeStatus.swift; sourceTree = "<group>"; };
@@ -58,6 +60,14 @@
 				11FBD9CE2D88DB46CF20D73C /* MJPEGStreamReader.swift */,
 			);
 			path = Streaming;
+			sourceTree = "<group>";
+		};
+		121C154288F582FD8BF046B1 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				B670A56AC6A88B38B21BCBE4 /* LeofricStore.swift */,
+			);
+			path = Store;
 			sourceTree = "<group>";
 		};
 		3F5C698B1B9DD641A4EF6076 /* LeofricAppTests */ = {
@@ -97,6 +107,7 @@
 				840E97178946DE6A743D7AE4 /* Models */,
 				D50D2081B9C961533BCAECCA /* Networking */,
 				C6408F15B6FAEEBD37CD8180 /* Settings */,
+				121C154288F582FD8BF046B1 /* Store */,
 				0AA0F1698B8C0916019025A9 /* Streaming */,
 				F928891EE511B3BD882E2EE3 /* Views */,
 			);
@@ -244,6 +255,7 @@
 				013D6EC0EF16E16C2FE3C225 /* AppSettings.swift in Sources */,
 				2DEF00A3014F96D514E22A21 /* LeofricAPI.swift in Sources */,
 				8482F070C7FA10995216FCD8 /* LeofricApp.swift in Sources */,
+				26A9BAD6E20470C1FD4D3FC6 /* LeofricStore.swift in Sources */,
 				921BDB985402BF03002FF99A /* LiveFeedView.swift in Sources */,
 				B4598A1BA7A32E90B79B275D /* MJPEGStreamReader.swift in Sources */,
 				2EB6A82443A24BA8FD578E90 /* NodeStatus.swift in Sources */,
