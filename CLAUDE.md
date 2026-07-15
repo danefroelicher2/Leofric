@@ -12,6 +12,21 @@ then at `docs/ROADMAP.md` for the Phase 2 review. Read `docs/ROADMAP.md` (the
 
 ---
 
+## Repo identity — check this first, every session
+- **Project:** Leofric — local-first home-intelligence system (Pi sensor node + Mac
+  Mini brain + iOS app).
+- **Canonical remote:** `origin` → `https://github.com/danefroelicher2/Leofric.git`
+  (**private**). Run `git remote -v` to confirm you're pointed at this repo before
+  doing anything else — if it's different, stop and tell Dane.
+- **Active dev machine:** the **Mac Mini**, clone at `/Users/danefroelicher/Leofric`.
+  Treat the Mac + `origin/main` as source of truth for the current state of the code.
+- **Which machine am I in right now?** Run `hostname` and match against
+  "The three machines" table below — clones also exist on the Pi (`leofric.local`)
+  and this Windows PC (original/legacy dev machine, may be stale, do not assume
+  parity with `origin/main` without fetching first).
+
+---
+
 ## What Leofric is
 A local-first home-intelligence system. A Raspberry Pi node senses (camera + mic);
 a Mac Mini runs the LLM "brain"; everything is local (privacy is a feature). Long
