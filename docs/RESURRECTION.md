@@ -26,8 +26,12 @@ varying effort).
 | `devices.json` | `~/leofric-brain/` | Registered iPhone push tokens (rebuilt automatically when the app runs) |
 | Snapshots | `~/leofric-brain/snapshots/` | Historical alert photos — keep only if you care |
 
-The Supabase project itself (event/conversation history) lives in Supabase's
-cloud under the account in the `.env` — it survives hardware.
+The Supabase project itself lives in Supabase's cloud — but **do not count on
+it surviving the years**: the free tier pauses inactive projects and deletes
+them after extended inactivity. That's fine — the history is expendable, and
+the full schema needed to recreate the tables in a fresh project is recorded
+in **[SUPABASE_SCHEMA.md](SUPABASE_SCHEMA.md)** (captured from the live DB at
+shelving time).
 
 ## 1. Provision a fresh Pi node (repeat per node)
 
