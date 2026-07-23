@@ -76,7 +76,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 # A node is "online" if it pushed a frame within this window. The Pi streams
 # several frames per second, so 15s tolerates WiFi hiccups without lying.
 NODE_ONLINE_WINDOW_SECONDS = 15
-FEED_FPS = 4  # re-broadcast rate of /feed (matches the Pi's default push rate)
+FEED_FPS = 15  # re-broadcast rate of /feed (matches the Pi's default push rate)
+# Quiet-gap re-send of the last frame: keeps the app's 10s stall detector fed
+# without re-broadcasting duplicates at full rate when the node sends slowly.
+FEED_KEEPALIVE_SECONDS = 1.0
 MAX_FRAME_BYTES = 5 * 1024 * 1024  # reject absurd uploads; 720p JPEG is ~100 KB
 
 # Snapshots: one JPEG per person/identity event, saved on disk so the app's
@@ -195,18 +198,26 @@ def _latest_frame(node):
 def _mjpeg_stream(node):
     """Yield the latest frame as multipart MJPEG until the client disconnects.
 
-    Frames are re-sent at FEED_FPS even when unchanged so players that measure
-    liveness by inter-frame gaps don't stall during quiet moments. But if the
-    node's frames go STALE (Pi died mid-stream), the stream ends instead of
-    re-broadcasting the last frame forever — a frozen image that looks live is
-    the worst failure mode for a remote security camera. Ending hands off to
-    the app's reconnect loop, which then gets /feed's honest 503.
+    Only NEW frames are sent (the node's ingest timestamp is the change
+    signal); an unchanged frame is re-sent once per FEED_KEEPALIVE_SECONDS so
+    players that measure liveness by inter-frame gaps don't stall during quiet
+    moments. And if the node's frames go STALE (Pi died mid-stream), the
+    stream ends instead of re-broadcasting the last frame forever — a frozen
+    image that looks live is the worst failure mode for a remote security
+    camera. Ending hands off to the app's reconnect loop, which then gets
+    /feed's honest 503.
     """
+    last_sent_ingest_at = 0.0
+    last_yield_at = 0.0
     while True:
         jpeg, at = _latest_frame(node)
-        if jpeg is None or time.time() - at > NODE_ONLINE_WINDOW_SECONDS:
+        now = time.time()
+        if jpeg is None or now - at > NODE_ONLINE_WINDOW_SECONDS:
             return
-        yield (
+        if at != last_sent_ingest_at or now - last_yield_at >= FEED_KEEPALIVE_SECONDS:
+            last_sent_ingest_at = at
+            last_yield_at = now
+            yield (
                 b"--leofricframe\r\n"
                 b"Content-Type: image/jpeg\r\n"
                 b"Content-Length: " + str(len(jpeg)).encode() + b"\r\n\r\n"

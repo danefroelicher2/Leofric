@@ -101,6 +101,45 @@ class ApiTest(unittest.TestCase):
         self.assertIn(TINY_JPEG, first_part)
         resp.response.close()
 
+    def test_feed_skips_unchanged_frames_but_keeps_alive(self):
+        # At 15fps, blindly re-sending an unchanged frame every tick wastes
+        # real bandwidth on the cellular leg. The stream must send only NEW
+        # frames — but re-send the last one after ~1s of quiet so the app's
+        # stall detector keeps seeing a living stream.
+        class FakeClock:
+            def __init__(self, now=1000.0):
+                self.now = now
+
+            def time(self):
+                return self.now
+
+            def sleep(self, seconds):
+                self.now += seconds
+
+        clock = FakeClock()
+        with mock.patch.object(server, "time", clock):
+            server._frames["leofric"] = {"jpeg": TINY_JPEG, "at": clock.now}
+            stream = server._mjpeg_stream("leofric")
+
+            next(stream)  # fresh frame: sent immediately
+            sent_at = clock.now
+            next(stream)  # no new frame: must wait out the keepalive window
+            quiet_gap = clock.now - sent_at
+            self.assertGreaterEqual(quiet_gap, server.FEED_KEEPALIVE_SECONDS)
+
+            # A newly ingested frame goes out on the next tick, not after 1s.
+            server._frames["leofric"]["at"] = clock.now
+            sent_at = clock.now
+            next(stream)
+            self.assertLess(clock.now - sent_at, 2.0 / server.FEED_FPS)
+
+            # Staleness cutoff still ends the stream.
+            server._frames["leofric"]["at"] = (
+                clock.now - server.NODE_ONLINE_WINDOW_SECONDS - 5
+            )
+            with self.assertRaises(StopIteration):
+                next(stream)
+
     def test_feed_ends_stream_when_frames_go_stale(self):
         # If the Pi dies mid-stream, the feed must END rather than re-broadcast
         # the last frame forever — a frozen image that looks live is the worst

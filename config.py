@@ -108,7 +108,10 @@ MAC_MINI_URL = os.getenv("MAC_MINI_URL", "http://Danes-Mac-mini-3.local:5000")
 
 # --- Frame streaming to the Mac (Phase 2A: live feed for the iOS app) ---
 STREAM_ENABLED = os.getenv("STREAM_ENABLED", "1").lower() not in ("0", "false", "no")
-STREAM_FPS = float(os.getenv("STREAM_FPS", "4"))
+# 15fps reads as live video in the app; the camera captures 30 but MJPEG
+# bandwidth scales linearly with rate, so this is the smoothness/bytes balance
+# (see docs/superpowers/specs/2026-07-23-live-feed-smoothness-design.md).
+STREAM_FPS = float(os.getenv("STREAM_FPS", "15"))
 STREAM_JPEG_QUALITY = int(os.getenv("STREAM_JPEG_QUALITY", "70"))  # 0-100
 
 # Node role shapes app behavior: a "security" node is camera-first (person
