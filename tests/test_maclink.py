@@ -6,10 +6,16 @@ import sys
 import unittest
 from unittest import mock
 
-sys.modules.setdefault(
-    "config",
-    mock.Mock(MAC_MINI_URL="http://mac.test:5000", NODE_ID="leofric"),
-)
+# Stub config ONLY when the real one can't load (Mac-side runs without the
+# Pi's deps). Unconditionally stubbing poisoned sys.modules for every later
+# test in a discovery run — test_streamer then divided by a Mock STREAM_FPS.
+try:
+    import config  # noqa: F401
+except Exception:
+    sys.modules.setdefault(
+        "config",
+        mock.Mock(MAC_MINI_URL="http://mac.test:5000", NODE_ID="leofric"),
+    )
 
 from brain.maclink import MacLink  # noqa: E402
 

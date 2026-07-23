@@ -12,10 +12,13 @@ import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-import numpy as np
+try:
+    import numpy as np
 
-import config
-from vision.streamer import FrameStreamer
+    import config
+    from vision.streamer import FrameStreamer
+except ImportError as e:  # Pi-side deps; skip when run on the Mac
+    raise unittest.SkipTest(f"Pi-side deps unavailable: {e}")
 
 
 class _FakeCamera:
