@@ -6,3 +6,4 @@ requests
 # ES256 JWT auth — these two packages are the minimum to do that.
 httpx[http2]
 PyJWT[crypto]
+waitress

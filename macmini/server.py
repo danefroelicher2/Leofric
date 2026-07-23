@@ -25,6 +25,7 @@ Binds 0.0.0.0:5000 so the Pi and iPhones on the LAN can reach it.
 """
 
 import json
+import logging
 import os
 import re
 import threading
@@ -508,6 +509,22 @@ def app_chat():
 
 
 if __name__ == "__main__":
-    # threaded=True (Flask's default, made explicit): /feed holds a connection
-    # open per viewer, which must not block /chat and /ingest.
-    app.run(host="0.0.0.0", port=5000, threaded=True)
+    # Waitress instead of the Werkzeug dev server: Werkzeug 3.x force-closes
+    # the TCP connection after every response (no keep-alive at all), so the
+    # Pi paid a fresh handshake + mDNS lookup per streamed frame — measured
+    # ~50ms of fixed overhead per POST, capping the 15fps live feed at ~9fps.
+    # Waitress keeps connections alive and is single-process, so the in-memory
+    # _frames/_devices state stays correct. threads=16 because every /feed
+    # viewer parks a worker thread for the life of its stream.
+    try:
+        from waitress import serve
+
+        serve(app, host="0.0.0.0", port=5000, threads=16)
+    except ImportError:
+        # Same spirit as the APNs-deps fallback: never leave the brain down
+        # because a dependency is missing — degrade to the dev server.
+        logging.getLogger(__name__).warning(
+            "waitress not installed — falling back to the dev server "
+            "(live feed will be capped around 9fps)"
+        )
+        app.run(host="0.0.0.0", port=5000, threaded=True)
