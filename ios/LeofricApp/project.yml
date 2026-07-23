@@ -7,6 +7,9 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     CODE_SIGN_STYLE: Automatic
+    # Dane's personal team — without this, every `xcodegen generate` wipes the
+    # Team picked in Xcode's Signing & Capabilities and device builds fail.
+    DEVELOPMENT_TEAM: 9N735S4L4M
 targets:
   LeofricApp:
     type: application
