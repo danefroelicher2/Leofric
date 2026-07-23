@@ -77,9 +77,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 # A node is "online" if it pushed a frame within this window. The Pi streams
 # several frames per second, so 15s tolerates WiFi hiccups without lying.
 NODE_ONLINE_WINDOW_SECONDS = 15
-FEED_FPS = 15  # re-broadcast rate of /feed (matches the Pi's default push rate)
 # Quiet-gap re-send of the last frame: keeps the app's 10s stall detector fed
-# without re-broadcasting duplicates at full rate when the node sends slowly.
+# without re-broadcasting duplicates when the node isn't sending. (There is no
+# feed rate constant: /feed is event-driven and forwards frames at whatever
+# rate the node pushes them.)
 FEED_KEEPALIVE_SECONDS = 1.0
 MAX_FRAME_BYTES = 5 * 1024 * 1024  # reject absurd uploads; 720p JPEG is ~100 KB
 
@@ -136,6 +137,8 @@ app = Flask(__name__)
 # In-memory only — the feed is live TV, not a recording (privacy is a feature).
 _frames = {}
 _frames_lock = threading.Lock()
+# Wraps _frames_lock so frame ingest can wake the /feed streams waiting on it.
+_frames_cond = threading.Condition(_frames_lock)
 
 
 @app.get("/")
@@ -185,8 +188,9 @@ def ingest_frame(node):
     if not jpeg.startswith(b"\xff\xd8"):  # JPEG magic — cheap sanity check
         return jsonify(error="body is not a JPEG"), 400
     role = request.headers.get("X-Node-Role") or None
-    with _frames_lock:
+    with _frames_cond:
         _frames[node] = {"jpeg": jpeg, "at": time.time(), "role": role}
+        _frames_cond.notify_all()  # wake every /feed stream waiting for a frame
     return jsonify(ok=True)
 
 
@@ -199,19 +203,29 @@ def _latest_frame(node):
 def _mjpeg_stream(node):
     """Yield the latest frame as multipart MJPEG until the client disconnects.
 
-    Only NEW frames are sent (the node's ingest timestamp is the change
-    signal); an unchanged frame is re-sent once per FEED_KEEPALIVE_SECONDS so
-    players that measure liveness by inter-frame gaps don't stall during quiet
-    moments. And if the node's frames go STALE (Pi died mid-stream), the
-    stream ends instead of re-broadcasting the last frame forever — a frozen
-    image that looks live is the worst failure mode for a remote security
-    camera. Ending hands off to the app's reconnect loop, which then gets
-    /feed's honest 503.
+    Event-driven, not polled: each ingest notifies _frames_cond, and every
+    /feed stream forwards the new frame the moment it lands. (The obvious
+    polling loop — sleep(1/fps), check for news — was measured sleeping ~150ms
+    per 66ms request under macOS timer coalescing of background LaunchAgents,
+    capping the feed at 6fps while the Pi pushed 15.) An unchanged frame is
+    re-sent once per FEED_KEEPALIVE_SECONDS so players that measure liveness
+    by inter-frame gaps don't stall during quiet moments. And if the node's
+    frames go STALE (Pi died mid-stream), the stream ends instead of
+    re-broadcasting the last frame forever — a frozen image that looks live is
+    the worst failure mode for a remote security camera. Ending hands off to
+    the app's reconnect loop, which then gets /feed's honest 503.
     """
     last_sent_ingest_at = 0.0
     last_yield_at = 0.0
     while True:
-        jpeg, at = _latest_frame(node)
+        with _frames_cond:
+            entry = _frames.get(node)
+            if entry is not None and entry["at"] == last_sent_ingest_at:
+                # Nothing new — sleep until an ingest wakes us or the
+                # keepalive window runs out, whichever comes first.
+                _frames_cond.wait(timeout=FEED_KEEPALIVE_SECONDS)
+                entry = _frames.get(node)
+            jpeg, at = (entry["jpeg"], entry["at"]) if entry else (None, 0.0)
         now = time.time()
         if jpeg is None or now - at > NODE_ONLINE_WINDOW_SECONDS:
             return
@@ -224,7 +238,6 @@ def _mjpeg_stream(node):
                 b"Content-Length: " + str(len(jpeg)).encode() + b"\r\n\r\n"
                 + jpeg + b"\r\n"
             )
-        time.sleep(1.0 / FEED_FPS)
 
 
 @app.get("/feed")

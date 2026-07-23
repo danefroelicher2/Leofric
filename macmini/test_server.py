@@ -9,6 +9,7 @@ Supabase and Ollama are mocked; nothing here touches the network.
 import os
 import shutil
 import tempfile
+import threading
 import time
 import unittest
 from unittest import mock
@@ -101,44 +102,46 @@ class ApiTest(unittest.TestCase):
         self.assertIn(TINY_JPEG, first_part)
         resp.response.close()
 
-    def test_feed_skips_unchanged_frames_but_keeps_alive(self):
-        # At 15fps, blindly re-sending an unchanged frame every tick wastes
-        # real bandwidth on the cellular leg. The stream must send only NEW
-        # frames — but re-send the last one after ~1s of quiet so the app's
-        # stall detector keeps seeing a living stream.
-        class FakeClock:
-            def __init__(self, now=1000.0):
-                self.now = now
+    def _seed_frame(self, at=None):
+        with server._frames_cond:
+            server._frames["leofric"] = {"jpeg": TINY_JPEG, "at": at or time.time()}
+            server._frames_cond.notify_all()
 
-            def time(self):
-                return self.now
+    def test_feed_sends_fresh_frame_immediately(self):
+        # The feed is event-driven (ingest notifies waiting streams) — a fresh
+        # frame must go out at once, not after a poll tick. This matters on
+        # macOS, where timer coalescing stretched the old polling loop's 66ms
+        # sleeps to ~150ms and capped the feed at 6fps.
+        self._seed_frame()
+        stream = server._mjpeg_stream("leofric")
+        start = time.time()
+        part = next(stream)
+        self.assertLess(time.time() - start, 0.5)
+        self.assertIn(TINY_JPEG, part)
 
-            def sleep(self, seconds):
-                self.now += seconds
+    def test_feed_wakes_on_new_ingest_not_on_timer(self):
+        self._seed_frame()
+        stream = server._mjpeg_stream("leofric")
+        next(stream)  # consume the seed frame; stream now waits for news
+        with mock.patch.object(server, "FEED_KEEPALIVE_SECONDS", 30.0):
+            timer = threading.Timer(0.1, self._seed_frame)
+            timer.start()
+            start = time.time()
+            next(stream)  # must be woken by the ingest notify, not keepalive
+            self.assertLess(time.time() - start, 5.0)
+            timer.join()
 
-        clock = FakeClock()
-        with mock.patch.object(server, "time", clock):
-            server._frames["leofric"] = {"jpeg": TINY_JPEG, "at": clock.now}
-            stream = server._mjpeg_stream("leofric")
-
-            next(stream)  # fresh frame: sent immediately
-            sent_at = clock.now
-            next(stream)  # no new frame: must wait out the keepalive window
-            quiet_gap = clock.now - sent_at
-            self.assertGreaterEqual(quiet_gap, server.FEED_KEEPALIVE_SECONDS)
-
-            # A newly ingested frame goes out on the next tick, not after 1s.
-            server._frames["leofric"]["at"] = clock.now
-            sent_at = clock.now
-            next(stream)
-            self.assertLess(clock.now - sent_at, 2.0 / server.FEED_FPS)
-
-            # Staleness cutoff still ends the stream.
-            server._frames["leofric"]["at"] = (
-                clock.now - server.NODE_ONLINE_WINDOW_SECONDS - 5
-            )
-            with self.assertRaises(StopIteration):
-                next(stream)
+    def test_feed_resends_last_frame_as_keepalive_when_quiet(self):
+        # No new frames: the last one is re-sent once per keepalive window so
+        # players measuring liveness by inter-frame gaps don't stall — but NOT
+        # at full rate, which would waste bandwidth on the cellular leg.
+        self._seed_frame()
+        stream = server._mjpeg_stream("leofric")
+        next(stream)
+        with mock.patch.object(server, "FEED_KEEPALIVE_SECONDS", 0.15):
+            start = time.time()
+            next(stream)  # nothing new — only the keepalive can release this
+            self.assertGreaterEqual(time.time() - start, 0.15)
 
     def test_feed_ends_stream_when_frames_go_stale(self):
         # If the Pi dies mid-stream, the feed must END rather than re-broadcast

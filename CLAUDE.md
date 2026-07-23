@@ -118,6 +118,19 @@ up: `danes-mac-mini.tail549466.ts.net` / `100.66.183.114`. **The builder must
 rebuild the app to the phone, keep the phone's Tailscale VPN on, and set the app
 address to `http://danes-mac-mini.tail549466.ts.net:5000`** (works home + away).
 
+### Live feed at 15fps (2026-07-23, same day, later)
+The 4fps slideshow became real 15fps video (measured 14.9fps, 67ms median gap,
+local AND over Tailscale). Config bump alone gave only ~6fps — three measured
+bottlenecks fixed: Werkzeug 3 has no keep-alive (Mac brain now serves via
+**waitress**, new dep in macmini/requirements.txt, installed in the brain venv);
+`requests` per-POST overhead ~50x worse under Pi GIL contention (streamer now
+uses stdlib http.client, persistent connection); macOS timer coalescing
+stretched the feed's polling sleeps ~2.3x (/feed is now event-driven via a
+condition variable — FEED_FPS no longer exists). Full story in
+`docs/superpowers/specs/2026-07-23-live-feed-smoothness-design.md`. Deferred
+"Approach B" (Mac-side H.264/LL-HLS for smoother remote/cellular) lives there
+too. Pi load now ~3.2 of 4.0 — watch it when Phase 3 touches the vision loop.
+
 ### On-device testing status (2026-07-11) — where a fresh session picks up
 App built to the builder's **physical iPhone**; **Live feed, Chats, and Alerts all
 confirmed working on device** (home WiFi). Remaining: **Stage C (push)** and
