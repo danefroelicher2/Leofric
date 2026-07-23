@@ -3,12 +3,27 @@
 Read this first. It's the working memory for any Claude instance on this project.
 Last updated: 2026-07-11 (end of the Phase 2 build sprint — 2A–2E code complete).
 
-**If you are a fresh session starting here:** Phase 1 (the Pi core loop) and all of
-Phase 2's *code* (2A–2E: the Mac app-API, the iOS app, push notifications) are DONE
-and on `main`. The immediate next work is **on-device testing**, not building. The
-builder will point you at `docs/PHASE_2E_SETUP.md` to finish push/Tailscale testing,
-then at `docs/ROADMAP.md` for the Phase 2 review. Read `docs/ROADMAP.md` (the
-"On-device testing status" note under Phase 2E) for exactly where things stand.
+**If you are a fresh session starting here:** the project is **HARVESTED AND
+SHELVED as of 2026-07-23** — complete through Phase 2 (all live-verified: app,
+15fps feed, chats, alerts, Tailscale remote), deliberately paused because the
+builder's condo has no practical mounting/power point and multi-node needs a
+real property. This was a strategic call, not abandonment: the repo is written
+to be resurrected years later on fresh hardware. **Entry points: `README.md`
+(public face + engineering story) and `docs/RESURRECTION.md` (the complete
+pick-it-back-up runbook, including where development actually stopped —
+read its section 5 before proposing any work).** If the builder shows up
+wanting to resume, that doc is the map; if they want the remaining harvest
+items, see "Harvest status" below.
+
+### Harvest status (2026-07-23)
+Done: README rewrite (identity/status/scaling/highlights), RESURRECTION.md,
+fresh `.env.example` for node + brain (`macmini/.env.example`). The builder
+kept the name **Leofric** (decided against renaming; README explains the
+name). Remaining harvest items the builder discussed but hasn't done: demo
+video (must be shot while the system is alive), LinkedIn/blog write-ups (the
+15fps debugging saga is the strongest material), secrets audit before making
+the repo public, and the physical decommission/backup pass (RESURRECTION.md
+section 0 lists what to back up).
 
 ---
 
