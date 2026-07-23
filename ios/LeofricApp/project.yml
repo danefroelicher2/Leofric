@@ -20,6 +20,14 @@ targets:
         UILaunchScreen: {}
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+          # ATS exempts .local names and raw IPs, but NOT hostnames — without
+          # this, http://<mac>.tailXXXX.ts.net:5000 is silently blocked and the
+          # live feed spins forever when remote. Plain HTTP inside the tailnet
+          # is fine: Tailscale wraps it in WireGuard end-to-end.
+          NSExceptionDomains:
+            ts.net:
+              NSIncludesSubdomains: true
+              NSExceptionAllowsInsecureHTTPLoads: true
         NSLocalNetworkUsageDescription: >-
           Leofric connects to your Mac Mini on the local network to show
           the live camera feed and node status.
@@ -51,6 +59,15 @@ targets:
       path: NotificationService/Info.plist
       properties:
         CFBundleDisplayName: LeofricNotification
+        # The extension fetches snapshot photos from the same base URL as the
+        # app; it needs the same ATS carve-outs or remote (ts.net) photo
+        # pushes arrive without their image.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+          NSExceptionDomains:
+            ts.net:
+              NSIncludesSubdomains: true
+              NSExceptionAllowsInsecureHTTPLoads: true
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService

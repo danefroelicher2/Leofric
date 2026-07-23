@@ -196,12 +196,17 @@ def _mjpeg_stream(node):
     """Yield the latest frame as multipart MJPEG until the client disconnects.
 
     Frames are re-sent at FEED_FPS even when unchanged so players that measure
-    liveness by inter-frame gaps don't stall during quiet moments.
+    liveness by inter-frame gaps don't stall during quiet moments. But if the
+    node's frames go STALE (Pi died mid-stream), the stream ends instead of
+    re-broadcasting the last frame forever — a frozen image that looks live is
+    the worst failure mode for a remote security camera. Ending hands off to
+    the app's reconnect loop, which then gets /feed's honest 503.
     """
     while True:
         jpeg, at = _latest_frame(node)
-        if jpeg is not None:
-            yield (
+        if jpeg is None or time.time() - at > NODE_ONLINE_WINDOW_SECONDS:
+            return
+        yield (
                 b"--leofricframe\r\n"
                 b"Content-Type: image/jpeg\r\n"
                 b"Content-Length: " + str(len(jpeg)).encode() + b"\r\n\r\n"

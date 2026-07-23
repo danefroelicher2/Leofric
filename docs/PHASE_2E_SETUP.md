@@ -85,10 +85,16 @@ The app already reads the Mac's address from the Nodes-tab setting, so remote
 access is a network change, not a code change.
 
 1. Install **Tailscale** on the Mac and on the iPhone; sign both into the **same**
-   Tailscale account. (Free personal plan is enough.)
-2. In the app's **Nodes** tab, set the Mac address to the Mac's Tailscale name,
-   e.g. `http://danes-mac-mini-3.tailXXXX.ts.net:5000` (find it in the Tailscale
-   app, or use the Tailscale IP `http://100.x.y.z:5000`).
+   Tailscale account. (Free personal plan is enough.) **Done 2026-07: both devices
+   are enrolled.** The Mac is `danes-mac-mini.tail549466.ts.net` (`100.66.183.114`).
+   On the Mac, verify `tailscale status` says it's running — it was found silently
+   **stopped** on 2026-07-23, which killed all remote access during a trip. On the
+   iPhone, keep the Tailscale VPN toggle **on** (it's near-zero battery when idle).
+2. In the app's **Nodes** tab, set the Mac address to
+   `http://danes-mac-mini.tail549466.ts.net:5000` and leave it there — Tailscale
+   routes over the LAN when home, so this one address works everywhere.
+   (The app's ATS config allows plain HTTP to `*.ts.net` since 2026-07-23; app
+   builds older than that silently block the hostname — rebuild from Xcode first.)
 3. The Notification Service Extension reads this same address from the shared App
    Group, so snapshot photos will download over Tailscale too when you're away.
 
@@ -105,6 +111,12 @@ If that works, Phase 2 is done — the app is a real remote security camera.
 
 ## Troubleshooting
 
+- **Live feed spins/buffers forever when remote:** check, in order: (1) the Mac —
+  `tailscale status` must show it running, not "Tailscale is stopped"; (2) the
+  iPhone's Tailscale VPN is connected; (3) the app's Nodes-tab address is the
+  `ts.net` one above, not `Danes-Mac-mini-3.local` (mDNS only resolves at home);
+  (4) the app build is from 2026-07-23 or later (older builds lack the ts.net ATS
+  exception AND lack the on-screen connection error/retry UI — they just spin).
 - **Token registers but no push:** almost always the sandbox/production mismatch
   (`APNS_USE_SANDBOX`). Xcode-signed dev builds need `=1`; TestFlight needs `=0`.
 - **Push arrives but no photo:** the extension couldn't reach the snapshot URL —

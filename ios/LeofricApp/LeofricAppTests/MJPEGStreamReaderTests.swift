@@ -62,4 +62,62 @@ final class MJPEGStreamReaderTests: XCTestCase {
         let frame = MJPEGStreamReader.extractFrame(from: &buffer)
         XCTAssertEqual(frame, tinyJPEG)
     }
+
+    func testRetryDelayBacksOffExponentiallyAndCaps() {
+        XCTAssertEqual(MJPEGStreamReader.retryDelay(afterAttempt: 1), 1)
+        XCTAssertEqual(MJPEGStreamReader.retryDelay(afterAttempt: 2), 2)
+        XCTAssertEqual(MJPEGStreamReader.retryDelay(afterAttempt: 3), 4)
+        XCTAssertEqual(MJPEGStreamReader.retryDelay(afterAttempt: 4), 8)
+        XCTAssertEqual(MJPEGStreamReader.retryDelay(afterAttempt: 10), 8)
+    }
+
+    /// An unreachable host must surface as a .retrying status (with a reason the
+    /// UI can show) instead of the pre-fix behavior: a silent, permanent spinner.
+    @MainActor
+    func testConnectionFailureSchedulesRetryInsteadOfGoingSilent() async throws {
+        let reader = MJPEGStreamReader()
+        // Port 9 on localhost: nothing listens there, so the connection is
+        // refused almost immediately — no external network involved.
+        reader.start(url: URL(string: "http://127.0.0.1:9/feed")!)
+
+        try await pollUntil(timeout: 5) {
+            if case .retrying = reader.status { return true }
+            return false
+        }
+        guard case .retrying(let attempt, let reason) = reader.status else {
+            return XCTFail("expected .retrying, got \(reader.status)")
+        }
+        XCTAssertGreaterThanOrEqual(attempt, 1)
+        XCTAssertFalse(reason.isEmpty)
+    }
+
+    /// A user-initiated stop must land on .idle and must NOT keep retrying.
+    @MainActor
+    func testStopCancelsPendingRetry() async throws {
+        let reader = MJPEGStreamReader()
+        reader.start(url: URL(string: "http://127.0.0.1:9/feed")!)
+        try await pollUntil(timeout: 5) {
+            if case .retrying = reader.status { return true }
+            return false
+        }
+
+        reader.stop()
+        XCTAssertEqual(reader.status, .idle)
+
+        // Give any stray retry task a chance to fire; status must stay .idle.
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        XCTAssertEqual(reader.status, .idle)
+    }
+
+    @MainActor
+    private func pollUntil(timeout: TimeInterval, _ condition: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            if Date() > deadline {
+                XCTFail("condition not met within \(timeout)s")
+                return
+            }
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+    }
 }

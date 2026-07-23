@@ -101,6 +101,24 @@ class ApiTest(unittest.TestCase):
         self.assertIn(TINY_JPEG, first_part)
         resp.response.close()
 
+    def test_feed_ends_stream_when_frames_go_stale(self):
+        # If the Pi dies mid-stream, the feed must END rather than re-broadcast
+        # the last frame forever — a frozen image that looks live is the worst
+        # failure mode for a remote security camera. Ending the stream hands
+        # off to the app's reconnect loop, which then sees the honest 503.
+        self.client.post(
+            "/ingest/frame/leofric", data=TINY_JPEG, content_type="image/jpeg"
+        )
+        resp = self.client.get("/feed")
+        self.assertEqual(resp.status_code, 200)
+        next(resp.response)  # stream is live while the frame is fresh
+        server._frames["leofric"]["at"] = (
+            time.time() - server.NODE_ONLINE_WINDOW_SECONDS - 5
+        )
+        with self.assertRaises(StopIteration):
+            next(resp.response)
+        resp.response.close()
+
     # --- Supabase-backed endpoints (requests mocked) ---
 
     def _mock_supabase(self, rows):

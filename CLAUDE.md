@@ -105,6 +105,19 @@ and docs/MAC_STATUS.md for the incident/fix record.
   **Code done + unit-tested + deployed; real APNs delivery NOT yet tested** (needs the
   builder's `.p8` key + physical device + Tailscale — that's the current next step).
 
+### Remote-access incident + live-feed hardening (2026-07-23)
+The live feed failed to load on cellular during the builder's out-of-state trip.
+Root cause: Tailscale on the Mac was **stopped** (installed ~Jul 17, both devices
+enrolled, but the Mac side was down and the phone's VPN off) — plus the old app
+build showed an infinite spinner on any connection failure. Fixed on `main`:
+MJPEGStreamReader now surfaces status + auto-reconnects with capped backoff and a
+10s idle timeout; LiveFeedView shows the failure reason; ATS allows `*.ts.net`
+(both app + notification extension); the Mac's `/feed` now ENDS the stream when
+Pi frames go stale instead of freezing on the last frame. Mac Tailscale is back
+up: `danes-mac-mini.tail549466.ts.net` / `100.66.183.114`. **The builder must
+rebuild the app to the phone, keep the phone's Tailscale VPN on, and set the app
+address to `http://danes-mac-mini.tail549466.ts.net:5000`** (works home + away).
+
 ### On-device testing status (2026-07-11) — where a fresh session picks up
 App built to the builder's **physical iPhone**; **Live feed, Chats, and Alerts all
 confirmed working on device** (home WiFi). Remaining: **Stage C (push)** and

@@ -18,13 +18,40 @@ struct LiveFeedView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    // Keep the last frame up during a drop (context beats black),
+                    // but say plainly that it's stale and being reconnected.
+                    .overlay(alignment: .top) {
+                        if case .retrying = reader.status {
+                            statusBanner("Connection lost — reconnecting…")
+                        } else if reader.status == .connecting {
+                            statusBanner("Reconnecting…")
+                        }
+                    }
             } else if let errorMessage {
                 Text(errorMessage)
                     .foregroundStyle(.white)
                     .padding()
+            } else if case .retrying(let attempt, let reason) = reader.status {
+                VStack(spacing: 12) {
+                    Text("Can't reach \(settings.baseURL?.host() ?? "the Mac")")
+                        .font(.headline)
+                    Text(reason)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Text("Retrying automatically (attempt \(attempt))…")
+                        .font(.footnote)
+                }
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .padding()
             } else {
-                ProgressView()
-                    .tint(.white)
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .tint(.white)
+                    Text("Connecting to \(settings.baseURL?.host() ?? "the Mac")…")
+                        .font(.footnote)
+                        .foregroundStyle(.white)
+                }
             }
 
             VStack {
@@ -59,6 +86,16 @@ struct LiveFeedView: View {
                 selectedNode = fetched[0].name
             }
         }
+    }
+
+    private func statusBanner(_ text: String) -> some View {
+        Text(text)
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.black.opacity(0.6), in: Capsule())
+            .padding(.top, 8)
     }
 
     private func connect(node: String) {
